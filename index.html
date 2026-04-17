@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuralScan — AI Media Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+:root{--bg:#090d14;--s2:#131b28;--border:rgba(0,255,200,.1);--border2:rgba(0,255,200,.2);--teal:#00ffc8;--teal-dim:rgba(0,255,200,.12);--teal-glow:rgba(0,255,200,.35);--text:#e8edf5;--dim:#6b7b90;--muted:#3d4d62;--danger:#ff4d6d;--warn:#ffb347}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,200,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,200,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.bg-orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;animation:orbFloat 12s ease-in-out infinite alternate}
+.orb1{width:600px;height:600px;background:rgba(0,255,200,.05);top:-200px;right:-100px}
+.orb2{width:500px;height:500px;background:rgba(123,94,167,.07);bottom:-150px;left:-100px;animation-delay:-4s}
+@keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(30px,40px)}}
+
+.container{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:28px 24px 80px}
+
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding:20px 28px;background:rgba(14,20,32,.85);border:1px solid var(--border);border-radius:20px;backdrop-filter:blur(20px);animation:fadeDown .5s ease both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.header-left{display:flex;align-items:center;gap:16px}
+.logo-mark{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.logo-hex{font-size:36px;color:var(--teal);filter:drop-shadow(0 0 12px var(--teal-glow));animation:hexPulse 3s ease-in-out infinite}
+@keyframes hexPulse{0%,100%{filter:drop-shadow(0 0 8px var(--teal-glow))}50%{filter:drop-shadow(0 0 22px var(--teal-glow))}}
+.logo-pulse{position:absolute;inset:-4px;border:2px solid var(--teal);border-radius:50%;opacity:.3;animation:pr 2.5s ease-in-out infinite}
+@keyframes pr{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.25);opacity:0}}
+.logo-text{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:linear-gradient(135deg,#fff,var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:12px;color:var(--dim);margin-top:2px}
+.header-right{display:flex;gap:10px;align-items:center}
+.status-pill{display:flex;align-items:center;gap:8px;padding:7px 14px;background:rgba(0,255,200,.07);border:1px solid var(--border2);border-radius:100px;font-size:12px;font-weight:500;color:var(--teal)}
+.status-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;box-shadow:0 0 8px var(--teal);animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.lang-badge-pill{padding:7px 14px;background:rgba(123,94,167,.2);border:1px solid rgba(123,94,167,.3);border-radius:100px;font-size:12px;font-weight:500;color:#b69de0}
+
+.app-layout{display:grid;grid-template-columns:1fr 265px;gap:20px;align-items:start;animation:fadeUp .5s .1s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.main-card{background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;overflow:hidden;backdrop-filter:blur(20px)}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:rgba(9,13,20,.6)}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:15px 18px;border:none;background:none;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;position:relative;transition:color .2s;white-space:nowrap}
+.tab-btn::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%) scaleX(0);width:80%;height:2px;background:var(--teal);border-radius:2px 2px 0 0;transition:transform .2s}
+.tab-btn.active{color:var(--teal)}
+.tab-btn.active::after{transform:translateX(-50%) scaleX(1)}
+
+/* SVG TAB ICONS */
+.tab-svg{width:17px;height:17px;flex-shrink:0;color:inherit;transition:color .2s}
+
+.tab-pane{padding:28px;display:flex;flex-direction:column;gap:16px}
+
+.drop-zone{position:relative;border:2px dashed var(--border2);border-radius:18px;padding:44px 24px;text-align:center;background:var(--teal-dim);transition:all .3s;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--teal);background:rgba(0,255,200,.08)}
+.dz-scanline{position:absolute;top:-4px;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--teal),transparent);opacity:0}
+.drop-zone:hover .dz-scanline,.drop-zone.drag-over .dz-scanline{opacity:1;animation:scan 1.5s linear infinite}
+@keyframes scan{from{top:-4px}to{top:100%}}
+.dz-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text)}
+.dz-sub{font-size:12px;color:var(--dim);margin-bottom:8px}
+.file-input{display:none}
+.choose-btn{display:inline-block;padding:9px 22px;background:transparent;border:1px solid var(--teal);border-radius:10px;color:var(--teal);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.choose-btn:hover{background:var(--teal);color:#090d14;box-shadow:0 0 20px var(--teal-glow)}
+.file-preview-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.img-preview{max-width:100%;max-height:240px;border-radius:12px;border:1px solid var(--border2)}
+.file-chip{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,255,200,.06);border:1px solid var(--border2);border-radius:12px;width:100%;text-align:left}
+.file-chip-icon{font-size:28px;flex-shrink:0}
+.file-chip-info{flex:1;min-width:0}
+.file-chip-name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-chip-meta{font-size:11px;color:var(--dim);margin-top:2px}
+.remove-btn-small{background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:6px;flex-shrink:0}
+.remove-btn-small:hover{background:rgba(255,77,109,.12)}
+
+.url-zone{display:flex;flex-direction:column;gap:12px}
+.url-label{font-size:13px;font-weight:600;color:var(--dim)}
+.url-input{width:100%;padding:13px 16px;background:var(--s2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all .2s}
+.url-input::placeholder{color:var(--muted)}
+.url-input:focus{border-color:var(--teal);background:rgba(0,255,200,.04);box-shadow:0 0 0 3px rgba(0,255,200,.08)}
+.platform-info{font-size:12px;font-weight:600;min-height:18px}
+.tip-box{padding:11px 14px;background:rgba(255,179,71,.07);border:1px solid rgba(255,179,71,.2);border-radius:10px;font-size:12px;color:#c49a3c;line-height:1.5}
+
+.analyze-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:linear-gradient(135deg,rgba(0,255,200,.15),rgba(0,200,255,.1));border:1px solid var(--teal);border-radius:14px;color:var(--teal);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.analyze-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--teal),#00c8ff);opacity:0;transition:opacity .3s}
+.analyze-btn:hover:not(:disabled){color:#090d14;box-shadow:0 0 30px var(--teal-glow);transform:translateY(-1px)}
+.analyze-btn:hover:not(:disabled)::before{opacity:1}
+.analyze-btn span{position:relative;z-index:1}
+.analyze-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;border-color:var(--muted);color:var(--muted)}
+
+.lang-panel{background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;padding:18px;backdrop-filter:blur(20px);position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
+.lang-header{display:flex;align-items:center;justify-content:space-between}
+.lang-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.5px;text-transform:uppercase}
+.lang-selected-badge{padding:3px 10px;background:var(--teal-dim);border:1px solid var(--border2);border-radius:20px;font-size:11px;color:var(--teal);font-weight:600}
+.lang-search{width:100%;padding:8px 12px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;transition:border-color .2s}
+.lang-search:focus{border-color:var(--teal)}
+.lang-search::placeholder{color:var(--muted)}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:430px;overflow-y:auto;padding-right:2px}
+.lang-grid::-webkit-scrollbar{width:3px}
+.lang-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.lang-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 4px;border:1px solid var(--border);border-radius:9px;background:transparent;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--dim);font-weight:500;line-height:1.3}
+.lang-btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+.lang-btn.active{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+.lang-btn .lflag{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px;
+    height:18px;
+    border-radius:4px;
+    font-size:9px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:.3px;
+    flex-shrink:0;
+    font-family:'DM Sans',sans-serif;
+    text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+
+/* ============================================
+   RESULTS SECTION
+   ============================================ */
+.results-section{margin-top:24px}
+
+.loading-state{display:flex;flex-direction:column;align-items:center;gap:16px;padding:60px 20px;background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;backdrop-filter:blur(20px)}
+.neural-loader{position:relative;width:80px;height:80px;display:flex;align-items:center;justify-content:center}
+.nl-ring{position:absolute;border:2px solid transparent;border-radius:50%;animation:spin linear infinite}
+.nl-ring.r1{inset:0;border-top-color:var(--teal);animation-duration:1.2s}
+.nl-ring.r2{inset:10px;border-right-color:rgba(0,255,200,.5);animation-duration:1.8s;animation-direction:reverse}
+.nl-ring.r3{inset:20px;border-bottom-color:rgba(0,255,200,.25);animation-duration:2.5s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nl-core{font-size:22px;color:var(--teal);animation:hexPulse 2s ease-in-out infinite}
+.loading-label{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.loading-sub{font-size:13px;color:var(--dim);text-align:center}
+
+.countdown-state{display:flex;flex-direction:column;align-items:center;gap:16px;padding:48px 24px;background:rgba(13,19,29,.9);border:1px solid rgba(255,179,71,.25);border-radius:24px;backdrop-filter:blur(20px)}
+.countdown-ring-wrap{position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center}
+.countdown-svg{position:absolute;inset:0;transform:rotate(-90deg);width:100%;height:100%}
+.cd-track{fill:none;stroke:rgba(255,179,71,.12);stroke-width:6}
+.cd-progress{fill:none;stroke:var(--warn);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 8px rgba(255,179,71,.5))}
+.countdown-num{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--warn);z-index:1}
+.countdown-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--warn)}
+.countdown-sub{font-size:13px;color:var(--dim);text-align:center;line-height:1.8}
+.countdown-sub strong{color:var(--warn)}
+.cd-badge{display:inline-block;margin-left:8px;padding:2px 8px;background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);border-radius:20px;font-size:11px;font-weight:600;color:var(--warn)}
+.cd-tip{padding:10px 16px;background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.15);border-radius:10px;font-size:12px;color:#a07830;text-align:center}
+.cancel-cd-btn{padding:8px 20px;background:transparent;border:1px solid rgba(255,77,109,.4);border-radius:10px;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.cancel-cd-btn:hover{background:rgba(255,77,109,.1)}
+
+/* -------- Results Grid -------- */
+.results-grid{background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;padding:28px;backdrop-filter:blur(20px)}
+.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.results-spark{color:var(--teal);font-size:20px;filter:drop-shadow(0 0 8px var(--teal-glow));animation:sparkle 2s ease-in-out infinite}
+@keyframes sparkle{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.3) rotate(180deg)}}
+.results-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(90deg,#fff,var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.clear-btn{padding:7px 16px;background:transparent;border:1px solid rgba(255,77,109,.3);border-radius:10px;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.clear-btn:hover{background:rgba(255,77,109,.1);border-color:var(--danger)}
+
+/* Two-column card layout */
+.result-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.result-card{border-radius:16px;padding:20px 22px;border:1px solid;overflow:hidden}
+.en-card{background:linear-gradient(135deg,rgba(0,100,200,.1),rgba(0,100,200,.05));border-color:rgba(0,150,255,.2)}
+.tr-card{background:linear-gradient(135deg,rgba(0,255,200,.08),rgba(0,255,200,.03));border-color:var(--border2)}
+.rc-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--dim);margin-bottom:10px}
+.rc-divider{height:1px;background:var(--border);margin-bottom:14px}
+.rc-text{color:var(--text);font-size:14px;line-height:1.75;font-weight:300}
+
+/* ============================================
+   RICH STRUCTURED SECTIONS
+   ============================================ */
+.rich-section{margin-bottom:20px;border-radius:12px;overflow:hidden;border:1px solid rgba(0,255,200,.08);background:rgba(0,0,0,.18)}
+.rich-section:last-child{margin-bottom:0}
+.rich-heading{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--teal);padding:10px 14px;background:rgba(0,255,200,.07);border-bottom:1px solid rgba(0,255,200,.1);letter-spacing:.3px}
+.rich-body{padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px}
+.rich-para{color:var(--text);font-size:13.5px;line-height:1.8;font-weight:300}
+.rich-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.rich-bullets li{position:relative;padding-left:18px;color:var(--text);font-size:13.5px;line-height:1.7;font-weight:300}
+.rich-bullets li::before{content:'▸';position:absolute;left:0;color:var(--teal);font-size:11px;top:3px}
+.rich-section:nth-last-child(3) .rich-heading,.rich-section:nth-last-child(3) .rich-bullets li::before{color:#ffd700}
+.rich-section:nth-last-child(3){border-color:rgba(255,215,0,.15);background:rgba(255,215,0,.04)}
+.rich-section:nth-last-child(3) .rich-heading{background:rgba(255,215,0,.08);border-bottom-color:rgba(255,215,0,.12)}
+.rich-section:nth-last-child(2) .rich-heading{color:#c084fc}
+.rich-section:nth-last-child(2){border-color:rgba(192,132,252,.15);background:rgba(192,132,252,.04)}
+.rich-section:nth-last-child(2) .rich-heading{background:rgba(192,132,252,.08);border-bottom-color:rgba(192,132,252,.12)}
+.rich-section:last-child .rich-heading{color:#4ade80}
+.rich-section:last-child{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.04)}
+.rich-section:last-child .rich-heading{background:rgba(74,222,128,.08);border-bottom-color:rgba(74,222,128,.12)}
+
+/* Error state */
+.error-state{display:flex;flex-direction:column;align-items:center;gap:14px;padding:50px 20px;background:rgba(13,19,29,.9);border:1px solid rgba(255,77,109,.2);border-radius:24px;backdrop-filter:blur(20px)}
+.error-icon-wrap{font-size:36px;color:var(--danger);filter:drop-shadow(0 0 12px rgba(255,77,109,.4))}
+.error-msg{font-size:14px;color:var(--dim);text-align:center;max-width:500px;line-height:1.6}
+.retry-btn{padding:10px 24px;background:transparent;border:1px solid var(--teal);border-radius:10px;color:var(--teal);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s}
+.retry-btn:hover{background:var(--teal);color:#090d14;box-shadow:0 0 20px var(--teal-glow)}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media(max-width:900px){
+    .app-layout{grid-template-columns:1fr}
+    .lang-panel{position:static}
+    .lang-grid{grid-template-columns:repeat(4,1fr);max-height:180px}
+    .result-cards{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+    .header{flex-direction:column;gap:14px;text-align:center}
+    .tab-btn span:last-child{display:none}
+    .tab-btn{padding:13px 14px}
+    .lang-grid{grid-template-columns:repeat(3,1fr)}
+    .container{padding:16px 14px 60px}
+}
+
+/* ============================================
+   SURVEILLANCE MODE TOGGLE BAR
+   ============================================ */
+.surv-mode-bar{display:flex;gap:8px;background:rgba(9,13,20,.7);border:1px solid var(--border);border-radius:14px;padding:6px}
+.surv-mode-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.surv-mode-btn:hover{color:var(--text);background:rgba(0,255,200,.05);border-color:var(--border)}
+.surv-mode-btn.active{background:rgba(0,255,200,.12);border-color:var(--teal);color:var(--teal);box-shadow:0 0 12px rgba(0,255,200,.15)}
+
+/* ============================================
+   Q&A PANEL
+   ============================================ */
+.qa-info-box{padding:12px 16px;background:rgba(0,255,200,.05);border:1px solid var(--border2);border-radius:12px;font-size:13px;color:var(--dim);line-height:1.6}
+.qa-info-box strong{color:var(--teal)}
+.surv-chat-box{display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:340px;overflow-y:auto;padding:14px;background:rgba(6,10,18,.6);border:1px solid var(--border);border-radius:14px;scroll-behavior:smooth}
+.surv-chat-box::-webkit-scrollbar{width:3px}
+.surv-chat-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.chat-empty{display:flex;align-items:center;justify-content:center;height:120px;color:var(--muted);font-size:13px;text-align:center}
+.chat-msg{display:flex;flex-direction:column;gap:4px;max-width:88%;animation:msgPop .2s ease both}
+@keyframes msgPop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-user{align-self:flex-end;align-items:flex-end}
+.chat-ai{align-self:flex-start;align-items:flex-start}
+.chat-you{font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
+.chat-bot{font-size:10px;font-weight:700;color:#b69de0;text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
+.chat-user p{background:rgba(0,255,200,.12);border:1px solid rgba(0,255,200,.2);border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.6;word-break:break-word}
+.chat-ai p{background:rgba(123,94,167,.12);border:1px solid rgba(123,94,167,.2);border-radius:14px 14px 14px 4px;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.chat-error p{background:rgba(255,77,109,.08);border-color:rgba(255,77,109,.2);color:var(--danger)}
+.chat-thinking p::after{content:'● ● ●';font-size:16px;letter-spacing:4px;color:var(--teal);animation:dotBlink 1.2s ease-in-out infinite}
+.chat-thinking p{color:transparent}
+@keyframes dotBlink{0%,100%{opacity:.2}50%{opacity:1}}
+.surv-qa-input-row{display:flex;gap:8px;align-items:center}
+.surv-qa-input{flex:1;padding:12px 16px;background:var(--s2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:all .2s}
+.surv-qa-input::placeholder{color:var(--muted)}
+.surv-qa-input:focus{border-color:var(--teal);background:rgba(0,255,200,.04);box-shadow:0 0 0 3px rgba(0,255,200,.08)}
+.surv-qa-send-btn{width:44px;height:44px;flex-shrink:0;background:linear-gradient(135deg,rgba(0,255,200,.2),rgba(0,200,255,.15));border:1px solid var(--teal);border-radius:12px;color:var(--teal);font-size:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.surv-qa-send-btn:hover:not(:disabled){background:var(--teal);color:#090d14;box-shadow:0 0 16px var(--teal-glow)}
+.surv-qa-send-btn:disabled{opacity:.3;cursor:not-allowed;border-color:var(--muted);color:var(--muted)}
+.qa-chips{display:flex;flex-wrap:wrap;gap:6px}
+.qa-chip{padding:6px 12px;background:rgba(0,255,200,.05);border:1px solid var(--border);border-radius:20px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.qa-chip:hover{border-color:var(--teal);color:var(--teal);background:rgba(0,255,200,.08)}
+.clear-chat-btn{align-self:flex-start;padding:6px 14px;background:transparent;border:1px solid rgba(255,77,109,.25);border-radius:8px;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+.clear-chat-btn:hover{background:rgba(255,77,109,.08);border-color:var(--danger)}
+#surveillanceTab{display:flex;flex-direction:column;gap:12px}
+#survQAPanel{display:flex;flex-direction:column;gap:10px}
+
+/* Drop zone icon */
+.dz-icon{width:72px;height:72px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:1px;margin-bottom:4px}
+.dz-icon-img{background:linear-gradient(135deg,#0066cc,#0096ff);box-shadow:0 0 20px rgba(0,150,255,.3)}
+.dz-icon-vid{background:linear-gradient(135deg,#6c3483,#9b59b6);box-shadow:0 0 20px rgba(155,89,182,.3)}
+.dz-icon-cam{background:linear-gradient(135deg,#00695c,#00b894);box-shadow:0 0 20px rgba(0,184,148,.3)}
+.dz-icon-doc{background:linear-gradient(135deg,#c0392b,#e67e22);box-shadow:0 0 20px rgba(230,126,34,.3)}
+.bolt{font-size:16px}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-mark">
+                <span class="logo-hex">&#9670;</span>
+                <div class="logo-pulse"></div>
+            </div>
+            <div>
+                <h1 class="logo-text">NeuralScan</h1>
+                <p class="logo-sub">AI Media Intelligence Platform</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-pill"><span class="status-dot"></span>Groq AI · Live</div>
+            <div class="lang-badge-pill">&#9728; 33 Languages</div>
+        </div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="app-layout">
+
+        <!-- MAIN CARD -->
+        <div class="main-card">
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('image',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="3" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="7.5" cy="8" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                        <path d="M2 13l4-4 3 3 2.5-2.5L18 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Image</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('video',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M14 8l4-2v8l-4-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Video</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('surveillance',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5 2"/>
+                        <circle cx="10" cy="10" r="1.2" fill="currentColor"/>
+                        <line x1="10" y1="3" x2="10" y2="1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Surveillance</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('document',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M12 2v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="7" y1="9" x2="13" y2="9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <line x1="7" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <line x1="7" y1="15" x2="11" y2="15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+                    <span>Document</span>
+                </button>
+            </div>
+
+            <!-- IMAGE -->
+            <div id="imageTab" class="tab-pane">
+                <div class="drop-zone" id="uploadArea"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event,'uploadArea')"
+                    ondrop="onDrop(event,'image')">
+                    <div class="dz-icon dz-icon-img">IMG</div>
+                    <div class="dz-title">Drop image here</div>
+                    <div class="dz-sub">PNG · JPG · WEBP · GIF</div>
+                    <label class="choose-btn">Browse File
+                        <input type="file" class="file-input" accept="image/*" onchange="onImagePick(event)">
+                    </label>
+                    <div class="dz-scanline"></div>
+                </div>
+                <button class="analyze-btn" id="analyzeImageBtn" onclick="analyzeImage()" disabled>
+                    <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                </button>
+            </div>
+
+            <!-- VIDEO -->
+            <div id="videoTab" class="tab-pane" style="display:none">
+                <div class="url-zone">
+                    <div class="url-label">&#128279; Enter Video URL</div>
+                    <input type="text" class="url-input" id="videoInput"
+                        placeholder="Paste YouTube, TikTok, Instagram, Vimeo link..."
+                        oninput="onVideoInput()">
+                    <div id="videoUrlInfo" class="platform-info"></div>
+                    <div class="tip-box">&#128161; YouTube links get real title &amp; channel info for better analysis.</div>
+                </div>
+                <button class="analyze-btn" id="analyzeVideoBtn" onclick="analyzeVideo()" disabled>
+                    <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                </button>
+            </div>
+
+            <!-- SURVEILLANCE -->
+            <div id="surveillanceTab" class="tab-pane" style="display:none">
+                <div class="drop-zone" id="survUploadArea"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event,'survUploadArea')"
+                    ondrop="onDrop(event,'surv')">
+                    <div class="dz-icon dz-icon-cam">CAM</div>
+                    <div class="dz-title">Drop surveillance video</div>
+                    <div class="dz-sub">MP4 · AVI · MOV · Auto frame capture</div>
+                    <label class="choose-btn">Browse File
+                        <input type="file" class="file-input" accept="video/*" onchange="onSurvPick(event)">
+                    </label>
+                    <div class="dz-scanline"></div>
+                </div>
+
+                <div class="surv-mode-bar">
+                    <button class="surv-mode-btn active" id="survModeAnalyze" onclick="setSurvMode('analyze')">
+                        <span>&#9740;</span><span>Full Analysis</span>
+                    </button>
+                    <button class="surv-mode-btn" id="survModeQA" onclick="setSurvMode('qa')">
+                        <span>&#9998;</span><span>Ask Questions</span>
+                    </button>
+                </div>
+
+                <div id="survAnalyzePanel">
+                    <button class="analyze-btn" id="analyzeSurvBtn" onclick="analyzeSurv()" disabled>
+                        <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                    </button>
+                </div>
+
+                <div id="survQAPanel" style="display:none">
+                    <div class="qa-info-box">
+                        &#9881; <strong>Footage Q&amp;A</strong> — Upload a video above, then ask any question about it.
+                    </div>
+                    <div class="surv-chat-box" id="survChatBox">
+                        <div class="chat-empty">Ask anything about the footage above</div>
+                    </div>
+                    <div class="surv-qa-input-row">
+                        <input type="text" id="survQuestion" class="surv-qa-input"
+                            placeholder="e.g. How many people entered? Any suspicious activity?"
+                            oninput="onSurvQuestionInput()"
+                            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askSurv();}">
+                        <button class="surv-qa-send-btn" id="askSurvBtn" onclick="askSurv()" disabled>
+                            <span>&#9658;</span>
+                        </button>
+                    </div>
+                    <div class="qa-chips">
+                        <button class="qa-chip" onclick="setQuestion('How many people are visible in the footage?')">Count people</button>
+                        <button class="qa-chip" onclick="setQuestion('Is there any suspicious activity or behavior?')">Suspicious activity</button>
+                        <button class="qa-chip" onclick="setQuestion('Describe the environment and location in detail.')">Describe location</button>
+                        <button class="qa-chip" onclick="setQuestion('What objects or vehicles are visible?')">Objects &amp; vehicles</button>
+                        <button class="qa-chip" onclick="setQuestion('What time of day does this appear to be?')">Time of day</button>
+                        <button class="qa-chip" onclick="setQuestion('Are there any security risks or safety concerns?')">Security risks</button>
+                    </div>
+                    <button class="clear-chat-btn" onclick="clearSurvChat()">&#10006; Clear Chat</button>
+                </div>
+            </div>
+
+            <!-- DOCUMENT -->
+            <div id="documentTab" class="tab-pane" style="display:none">
+                <div class="drop-zone" id="docUploadArea"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event,'docUploadArea')"
+                    ondrop="onDrop(event,'doc')">
+                    <div class="dz-icon dz-icon-doc">DOC</div>
+                    <div class="dz-title">Drop document here</div>
+                    <div class="dz-sub">PDF · DOC · DOCX · Full text extraction</div>
+                    <label class="choose-btn">Browse File
+                        <input type="file" class="file-input" accept=".pdf,.doc,.docx" onchange="onDocPick(event)">
+                    </label>
+                    <div class="dz-scanline"></div>
+                </div>
+                <button class="analyze-btn" id="analyzeDocBtn" onclick="analyzeDoc()" disabled>
+                    <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- LANGUAGE PANEL -->
+        <div class="lang-panel">
+            <div class="lang-header">
+                <span class="lang-title">Output Language</span>
+                <span class="lang-selected-badge" id="selectedLangBadge">हिंदी</span>
+            </div>
+            <input class="lang-search" type="text" placeholder="Search language..."
+                oninput="filterLangs(this.value)">
+            <div class="lang-grid" id="languageGrid"></div>
+        </div>
+    </div>
+
+    <!-- RESULTS -->
+    <section class="results-section" id="summarySection">
+
+        <div id="loadingState" style="display:none" class="loading-state">
+            <div class="neural-loader">
+                <div class="nl-ring r1"></div>
+                <div class="nl-ring r2"></div>
+                <div class="nl-ring r3"></div>
+                <div class="nl-core">&#9670;</div>
+            </div>
+            <p class="loading-label">Neural Analysis Running</p>
+            <p class="loading-sub">Connecting to Groq AI...</p>
+        </div>
+
+        <div id="countdownState" style="display:none" class="countdown-state">
+            <div class="countdown-ring-wrap">
+                <svg class="countdown-svg" viewBox="0 0 120 120">
+                    <circle class="cd-track" cx="60" cy="60" r="52"/>
+                    <circle class="cd-progress" id="cdCircle" cx="60" cy="60" r="52"
+                        stroke-dasharray="326.7" stroke-dashoffset="0"/>
+                </svg>
+                <div class="countdown-num" id="cdNum">20</div>
+            </div>
+            <p class="countdown-title">&#9203; Rate Limit — Auto Retry</p>
+            <p class="countdown-sub">Retrying in <strong id="cdSec">20</strong>s <span class="cd-badge" id="cdBadge">Attempt 1 of 2</span></p>
+            <div class="cd-tip">&#128161; Groq free tier resets every 60s</div>
+            <button class="cancel-cd-btn" onclick="stopCountdown()">&#10005; Cancel</button>
+        </div>
+
+        <div id="resultsGrid" style="display:none" class="results-grid">
+            <div class="results-top">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span class="results-spark">&#9733;</span>
+                    <h2 class="results-title">Analysis Complete</h2>
+                </div>
+                <button class="clear-btn" onclick="clearAll()">&#10005; Clear</button>
+            </div>
+            <div class="result-cards">
+                <div class="result-card en-card">
+                    <div class="rc-label">&#127468;&#127463; English Summary</div>
+                    <div class="rc-divider"></div>
+                    <p id="englishSummary" class="rc-text"></p>
+                </div>
+                <div class="result-card tr-card">
+                    <div class="rc-label" id="translatedTitle">&#9670; Translated Summary</div>
+                    <div class="rc-divider"></div>
+                    <p id="translatedSummary" class="rc-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorState" style="display:none" class="error-state">
+            <div class="error-icon-wrap">&#9888;</div>
+            <p class="error-msg" id="errorMsg">Something went wrong.</p>
+            <button class="retry-btn" onclick="clearAll()">&#8617; Try Again</button>
+        </div>
+
+    </section>
+</div>
+
+<script>
+// ============================================
+// NEURALSCAN — GROQ AI ENGINE
+// ============================================
+const GROQ_BASE    = "https://api.groq.com/openai/v1/chat/completions";
+const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+const TEXT_MODEL   = "llama-3.3-70b-versatile";
+
+// ============================================
+// API KEY (HIDDEN MODE - DEMO USE)
+// ============================================
+const _k1 = ["gsk_", "bhrM39X6LCxZL3E2lWic", "WGdyb3FYJLBezWUjHv2ZKbhANaaZecML"];
+const _k2 = ["gsk_", "SIZ5AQPqRMbojlwY8eTV", "WGdyb3FY0tKeMcjg5NbOxVSfFOLq2AnN"];
+const _k3 = ["gsk_", "STV0O7eT81qicggag31r", "WGdyb3FY0H7TEYlqRuELCSDt7olJD1kc"];
+const _k4 = ["gsk_", "Z2q07nkrMa7kKLyJRnB9", "WGdyb3FYsq7miywJBi5FBkKEJmbnYdeo"];
+
+const API_IMAGE = _k1.join("");
+const API_VIDEO = _k2.join("");
+const API_SURV  = _k3.join("");
+const API_DOC   = _k4.join("");
+const ALL_KEYS  = [API_IMAGE, API_VIDEO, API_SURV, API_DOC];
+
+// ============================================
+// LANGUAGES
+// ============================================
+const languages = {
+    hi:{name:"Hindi",     code:"HI", color:"#ff9933", native:"हिंदी"},
+    te:{name:"Telugu",    code:"TE", color:"#ff9933", native:"తెలుగు"},
+    ta:{name:"Tamil",     code:"TA", color:"#ff9933", native:"தமிழ்"},
+    bn:{name:"Bengali",   code:"BN", color:"#ff9933", native:"বাংলা"},
+    mr:{name:"Marathi",   code:"MR", color:"#ff9933", native:"मराठी"},
+    gu:{name:"Gujarati",  code:"GU", color:"#ff9933", native:"ગુજરાતી"},
+    kn:{name:"Kannada",   code:"KN", color:"#ff9933", native:"ಕನ್ನಡ"},
+    ml:{name:"Malayalam", code:"ML", color:"#ff9933", native:"മലയാളം"},
+    pa:{name:"Punjabi",   code:"PA", color:"#ff9933", native:"ਪੰਜਾਬੀ"},
+    or:{name:"Odia",      code:"OR", color:"#ff9933", native:"ଓଡ଼ିଆ"},
+    as:{name:"Assamese",  code:"AS", color:"#ff9933", native:"অসমীয়া"},
+    ks:{name:"Kashmiri",  code:"KS", color:"#ff9933", native:"कॉशुर"},
+    ur:{name:"Urdu",      code:"UR", color:"#ff9933", native:"اردو"},
+    es:{name:"Spanish",   code:"ES", color:"#c60b1e", native:"Español"},
+    fr:{name:"French",    code:"FR", color:"#0055a4", native:"Français"},
+    de:{name:"German",    code:"DE", color:"#000000", native:"Deutsch"},
+    zh:{name:"Chinese",   code:"ZH", color:"#de2910", native:"中文"},
+    ja:{name:"Japanese",  code:"JA", color:"#bc002d", native:"日本語"},
+    ko:{name:"Korean",    code:"KO", color:"#003478", native:"한국어"},
+    ar:{name:"Arabic",    code:"AR", color:"#006c35", native:"العربية"},
+    ru:{name:"Russian",   code:"RU", color:"#0039a6", native:"Русский"},
+    pt:{name:"Portuguese",code:"PT", color:"#006600", native:"Português"},
+    it:{name:"Italian",   code:"IT", color:"#009246", native:"Italiano"},
+    nl:{name:"Dutch",     code:"NL", color:"#ae1c28", native:"Nederlands"},
+    tr:{name:"Turkish",   code:"TR", color:"#e30a17", native:"Türkçe"},
+    pl:{name:"Polish",    code:"PL", color:"#dc143c", native:"Polski"},
+    vi:{name:"Vietnamese",code:"VI", color:"#da251d", native:"Tiếng Việt"},
+    th:{name:"Thai",      code:"TH", color:"#a51931", native:"ไทย"},
+    id:{name:"Indonesian",code:"ID", color:"#ce1126", native:"Bahasa Indonesia"},
+    ms:{name:"Malay",     code:"MS", color:"#cc0001", native:"Bahasa Melayu"},
+    fa:{name:"Persian",   code:"FA", color:"#239f40", native:"فارسی"},
+    he:{name:"Hebrew",    code:"HE", color:"#0038b8", native:"עברית"},
+    sw:{name:"Swahili",   code:"SW", color:"#006600", native:"Kiswahili"}
+};
+
+// ============================================
+// STATE
+// ============================================
+let selectedLang      = "hi";
+let uploadedImage     = null;
+let uploadedImageMime = "image/jpeg";
+let uploadedDoc       = null;
+let uploadedSurv      = null;
+let survFrame         = null;
+let survChatHistory   = [];
+let cdTimer           = null;
+let retryFn           = null;
+let cancelled         = false;
+let retryCount        = 0;
+const RETRY_WAITS     = [20, 40];
+
+// ============================================
+// INIT LANGUAGE GRID
+// ============================================
+function initLanguages() {
+    const grid = document.getElementById("languageGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    Object.keys(languages).forEach(function(code) {
+        var lang = languages[code];
+        var btn  = document.createElement("button");
+        btn.className    = "lang-btn" + (code === "hi" ? " active" : "");
+        btn.dataset.code = code;
+        btn.innerHTML    = "<span class='lflag' style='background:" + lang.color + "'>" + lang.code + "</span><span>" + lang.name + "</span>";
+        btn.onclick      = function() { selectLang(code); };
+        grid.appendChild(btn);
+    });
+}
+
+function selectLang(code) {
+    selectedLang = code;
+    document.querySelectorAll(".lang-btn").forEach(function(b) {
+        b.classList.toggle("active", b.dataset.code === code);
+    });
+    var badge = document.getElementById("selectedLangBadge");
+    if (badge) badge.textContent = languages[code].native;
+}
+
+function filterLangs(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll(".lang-btn").forEach(function(b) {
+        var lang = languages[b.dataset.code];
+        var show = !q || lang.name.toLowerCase().includes(q) || lang.native.toLowerCase().includes(q);
+        b.style.display = show ? "" : "none";
+    });
+}
+
+// ============================================
+// TABS
+// ============================================
+function switchTab(tab, btn) {
+    document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    ["image","video","surveillance","document"].forEach(function(t) {
+        var el = document.getElementById(t + "Tab");
+        if (el) el.style.display = (t === tab) ? "block" : "none";
+    });
+    clearAll();
+}
+
+// ============================================
+// DRAG & DROP
+// ============================================
+function onDragOver(e)      { e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
+function onDragLeave(e, id) { var el = document.getElementById(id); if(el) el.classList.remove("drag-over"); }
+function onDrop(e, type) {
+    e.preventDefault(); e.currentTarget.classList.remove("drag-over");
+    var f = e.dataTransfer.files[0];
+    if (!f) return;
+    if (type === "image") loadImage(f);
+    else if (type === "surv") loadSurv(f);
+    else if (type === "doc")  loadDoc(f);
+}
+
+// ============================================
+// IMAGE
+// ============================================
+function onImagePick(e)  { if (e.target.files[0]) loadImage(e.target.files[0]); }
+function loadImage(file) {
+    uploadedImageMime = file.type || "image/jpeg";
+    var r = new FileReader();
+    r.onload = function(ev) {
+        uploadedImage = ev.target.result.split(",")[1];
+        document.getElementById("uploadArea").innerHTML =
+            "<div class='file-preview-wrap'>" +
+            "<img src='" + ev.target.result + "' class='img-preview'>" +
+            "<button class='remove-btn-small' onclick='clearImage()'>&#10005;</button></div>";
+        document.getElementById("analyzeImageBtn").disabled = false;
+    };
+    r.readAsDataURL(file);
+}
+function clearImage() {
+    uploadedImage = null;
+    document.getElementById("uploadArea").innerHTML = dzHTML({text:"IMG",cls:"dz-icon-img"},"Drop image here","PNG · JPG · WEBP","image/*","onImagePick");
+    document.getElementById("analyzeImageBtn").disabled = true;
+}
+
+// ============================================
+// SURVEILLANCE
+// ============================================
+function onSurvPick(e) { if (e.target.files[0]) loadSurv(e.target.files[0]); }
+function loadSurv(file) {
+    uploadedSurv = file;
+    survFrame    = null;
+    clearSurvChat();
+    document.getElementById("survUploadArea").innerHTML =
+        chipHTML("CAM", file.name, (file.size/1024/1024).toFixed(1)+" MB", "clearSurv()");
+    document.getElementById("analyzeSurvBtn").disabled = false;
+    var askBtn = document.getElementById("askSurvBtn");
+    if (askBtn) askBtn.disabled = true;
+}
+function clearSurv() {
+    uploadedSurv = null;
+    survFrame    = null;
+    clearSurvChat();
+    document.getElementById("survUploadArea").innerHTML = dzHTML({text:"CAM",cls:"dz-icon-cam"},"Drop surveillance video","MP4 · AVI · MOV","video/*","onSurvPick");
+    document.getElementById("analyzeSurvBtn").disabled = true;
+    var askBtn = document.getElementById("askSurvBtn");
+    if (askBtn) askBtn.disabled = true;
+    var qEl = document.getElementById("survQuestion");
+    if (qEl) qEl.value = "";
+}
+
+// ============================================
+// DOCUMENT
+// ============================================
+function onDocPick(e) { if (e.target.files[0]) loadDoc(e.target.files[0]); }
+function loadDoc(file) {
+    uploadedDoc = file;
+    var ext = file.name.split(".").pop().toUpperCase();
+    document.getElementById("docUploadArea").innerHTML =
+        chipHTML(ext, file.name, (file.size/1024/1024).toFixed(1)+" MB · "+ext, "clearDoc()");
+    document.getElementById("analyzeDocBtn").disabled = false;
+}
+function clearDoc() {
+    uploadedDoc = null;
+    document.getElementById("docUploadArea").innerHTML = dzHTML({text:"DOC",cls:"dz-icon-doc"},"Drop document here","PDF · DOC · DOCX",".pdf,.doc,.docx","onDocPick");
+    document.getElementById("analyzeDocBtn").disabled = true;
+}
+
+// ============================================
+// VIDEO INPUT
+// ============================================
+function onVideoInput() {
+    var val = document.getElementById("videoInput").value.trim();
+    document.getElementById("analyzeVideoBtn").disabled = !val;
+    var info = document.getElementById("videoUrlInfo");
+    if (!val) { info.innerHTML = ""; return; }
+    var p = getPlatform(val);
+    info.innerHTML = p
+        ? "<span style='color:#00ffc8'>&#10003; " + p + " detected</span>"
+        : "<span style='color:#ffb347'>&#9888; Custom URL</span>";
+}
+function getPlatform(url) {
+    var map = {"youtube.com":"YouTube","youtu.be":"YouTube","instagram.com":"Instagram",
+               "tiktok.com":"TikTok","vimeo.com":"Vimeo","twitter.com":"Twitter","x.com":"Twitter",
+               "facebook.com":"Facebook","twitch.tv":"Twitch"};
+    for (var d in map) { if (url.includes(d)) return map[d]; }
+    return null;
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+function dzHTML(icon, title, sub, accept, fn) {
+    var iconHtml = (typeof icon === "object")
+        ? "<div class='dz-icon " + icon.cls + "'>" + icon.text + "</div>"
+        : "<div class='dz-icon'>" + icon + "</div>";
+    return iconHtml +
+           "<div class='dz-title'>" + title + "</div>" +
+           "<div class='dz-sub'>" + sub + "</div>" +
+           "<label class='choose-btn'>Browse File<input type='file' class='file-input' accept='" + accept + "' onchange='" + fn + "(event)'></label>" +
+           "<div class='dz-scanline'></div>";
+}
+function chipHTML(icon, name, meta, removeFn) {
+    return "<div class='file-chip'>" +
+           "<span class='file-chip-icon'>" + icon + "</span>" +
+           "<div class='file-chip-info'><div class='file-chip-name'>" + name + "</div>" +
+           "<div class='file-chip-meta'>" + meta + "</div></div>" +
+           "<button class='remove-btn-small' onclick='" + removeFn + "'>&#10005;</button></div>";
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function grabVideoFrame(file) {
+    return new Promise(function(resolve, reject) {
+        var video  = document.createElement("video");
+        var canvas = document.createElement("canvas");
+        var url    = URL.createObjectURL(file);
+        video.src = url; video.muted = true; video.playsInline = true;
+        video.addEventListener("loadedmetadata", function() {
+            video.currentTime = Math.min(3, video.duration * 0.1);
+        });
+        video.addEventListener("seeked", function() {
+            canvas.width  = Math.min(video.videoWidth  || 640, 640);
+            canvas.height = Math.min(video.videoHeight || 360, 360);
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            resolve(canvas.toDataURL("image/jpeg", 0.8).split(",")[1]);
+        });
+        video.addEventListener("error", function() { URL.revokeObjectURL(url); reject(new Error("Video load failed")); });
+        setTimeout(function() { URL.revokeObjectURL(url); reject(new Error("Timeout")); }, 8000);
+    });
+}
+
+async function readPdf(file) {
+    if (typeof pdfjsLib === "undefined") return "";
+    try {
+        var pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+        var max = Math.min(pdf.numPages, 10);
+        var all = [];
+        for (var i = 1; i <= max; i++) {
+            var page = await pdf.getPage(i);
+            var tc   = await page.getTextContent();
+            all.push(tc.items.map(function(s){ return s.str; }).join(" "));
+        }
+        return all.join("\n").trim().substring(0, 8000);
+    } catch(e) { return ""; }
+}
+
+async function readDocx(file) {
+    if (typeof mammoth === "undefined") return "";
+    try {
+        var result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+        return result.value.trim().substring(0, 8000);
+    } catch(e) { return ""; }
+}
+
+function isRateErr(msg) {
+    var m = (msg || "").toLowerCase();
+    return m.includes("rate_limit") || m.includes("429") ||
+           m.includes("too many")   || m.includes("quota") || m.includes("exceeded");
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;");
+}
+
+async function callGroqRaw(messages, preferredKey, vision, extraTokens) {
+    if (cancelled) throw new Error("CANCELLED");
+    var model    = vision ? VISION_MODEL : TEXT_MODEL;
+    var maxTok   = extraTokens || 1800;
+    var keyOrder = [preferredKey].concat(ALL_KEYS.filter(function(k){ return k !== preferredKey; }));
+
+    for (var ki = 0; ki < keyOrder.length; ki++) {
+        if (cancelled) throw new Error("CANCELLED");
+        var key = keyOrder[ki];
+        setStatus("Calling Groq AI" + (ki > 0 ? " (key " + (ki+1) + ")" : "") + "...");
+        try {
+            var payload = { model: model, messages: messages, max_tokens: maxTok, temperature: 0.3 };
+            var res = await fetch(GROQ_BASE, {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                var errData = await res.json().catch(function(){ return {}; });
+                var errMsg  = (errData.error && errData.error.message) ? errData.error.message : ("HTTP " + res.status);
+                if (isRateErr(errMsg)) { setStatus("Rate limited, trying next key..."); await sleep(800); continue; }
+                throw new Error(errMsg);
+            }
+            var data = await res.json();
+            var raw  = (data.choices && data.choices[0] && data.choices[0].message)
+                        ? data.choices[0].message.content : "";
+            if (!raw || raw.trim().length === 0) throw new Error("Empty response from AI.");
+            return raw.trim();
+        } catch(e) {
+            if (e.message === "CANCELLED") throw e;
+            if (isRateErr(e.message)) { setStatus("Rate limited, trying next key..."); await sleep(800); continue; }
+            throw e;
+        }
+    }
+    throw new Error("RATE_LIMITED");
+}
+
+async function getEnglishAnalysis(userMessages, preferredKey, vision) {
+    var sysPrompt = 'You are an expert AI analyst. Produce a thorough, detailed structured analysis report in English.\n' +
+                    'Use section headings formatted as: ### Emoji Title\n' +
+                    'Write detailed paragraphs under each heading. Use bullet points starting with - for lists.\n' +
+                    'ALWAYS end your report with exactly these three sections:\n' +
+                    '  ### Key Highlights  (5-7 bullet points)\n' +
+                    '  ### Sentiment and Tone  (detailed paragraph)\n' +
+                    '  ### Conclusion  (strong closing paragraph)\n' +
+                    'Output ONLY the plain analysis text. No JSON. No markdown fences.';
+    var msgs = [{ role: "system", content: sysPrompt }].concat(userMessages);
+    return await callGroqRaw(msgs, preferredKey, vision, 1800);
+}
+
+function parseSections(text) {
+    var lines    = text.split(/\n/);
+    var sections = [];
+    var cur      = null;
+    lines.forEach(function(line) {
+        if (line.trim().startsWith("###")) {
+            if (cur) sections.push(cur);
+            cur = { heading: line.trim(), body: [] };
+        } else {
+            if (!cur) cur = { heading: "", body: [] };
+            cur.body.push(line);
+        }
+    });
+    if (cur) sections.push(cur);
+    return sections;
+}
+
+async function translateChunk(text, langName, keyOrder) {
+    if (!text || !text.trim()) return text;
+    var sysPrompt = 'You are a professional translator. Translate the following text into ' + langName + '.\n' +
+                    'Rules:\n- Translate every word accurately into ' + langName + '\n' +
+                    '- Lines starting with "- " must stay as "- " followed by the translated text\n' +
+                    '- Keep all emoji characters exactly as they are\n' +
+                    '- Output ONLY the translated text with no explanation or extra words';
+    var msgs = [{ role: "system", content: sysPrompt }, { role: "user", content: text }];
+    for (var ki = 0; ki < keyOrder.length; ki++) {
+        if (cancelled) throw new Error("CANCELLED");
+        try {
+            var res = await fetch(GROQ_BASE, {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + keyOrder[ki], "Content-Type": "application/json" },
+                body: JSON.stringify({ model: TEXT_MODEL, messages: msgs, max_tokens: 900, temperature: 0.1 })
+            });
+            if (!res.ok) {
+                var ed = await res.json().catch(function(){ return {}; });
+                var em = (ed.error && ed.error.message) ? ed.error.message : ("HTTP " + res.status);
+                if (isRateErr(em)) { await sleep(800); continue; }
+                return text;
+            }
+            var data = await res.json();
+            var out  = (data.choices && data.choices[0] && data.choices[0].message)
+                        ? data.choices[0].message.content.trim() : "";
+            if (out.length > 2) return out;
+        } catch(e) {
+            if (e.message === "CANCELLED") throw e;
+            if (isRateErr(e.message)) { await sleep(800); continue; }
+            return text;
+        }
+    }
+    return text;
+}
+
+async function translateText(englishText, langName, preferredKey) {
+    if (cancelled) throw new Error("CANCELLED");
+    var sections = parseSections(englishText);
+    var keyOrder = [preferredKey].concat(ALL_KEYS.filter(function(k){ return k !== preferredKey; }));
+    var output   = [];
+    var total    = sections.length;
+    for (var i = 0; i < total; i++) {
+        if (cancelled) throw new Error("CANCELLED");
+        var sec = sections[i];
+        setStatus("Translating to " + langName + "... (" + (i + 1) + "/" + total + ")");
+        var translatedHeading = "";
+        if (sec.heading) {
+            var titleText       = sec.heading.replace(/^###\s*/, "").trim();
+            var translatedTitle = await translateChunk(titleText, langName, keyOrder);
+            translatedHeading   = "### " + (translatedTitle || titleText);
+        }
+        var bodyText       = sec.body.join("\n").trim();
+        var translatedBody = bodyText ? await translateChunk(bodyText, langName, keyOrder) : "";
+        if (translatedHeading) output.push(translatedHeading);
+        if (translatedBody)    output.push(translatedBody);
+        output.push("");
+    }
+    return output.join("\n").trim();
+}
+
+async function analyzeAndTranslate(userMessages, preferredKey, vision, langName) {
+    setStatus("Generating analysis...");
+    var english = await getEnglishAnalysis(userMessages, preferredKey, vision);
+    var translated = english;
+    if (langName && langName.toLowerCase() !== "english") {
+        translated = await translateText(english, langName, preferredKey);
+    }
+    return { english: english, translated: translated };
+}
+
+function makeImagePrompt(lang) {
+    return 'Perform a comprehensive expert-level visual analysis of this image.\nWrite a detailed structured report with these sections:\n\n### Overview\nDescribe the overall scene, context, and purpose of the image in detail.\n\n### Scene and Environment\nDescribe the setting, location type, time of day, lighting conditions, and spatial composition.\n\n### Objects and Elements\nList and describe every significant object, element, and subject present.\n\n### People and Subjects\nDescribe people present — appearance, expressions, posture, clothing, activity. If no people, describe the main subjects.\n\n### Visual Style and Colors\nAnalyze the color palette, contrast, saturation, artistic style, and photographic techniques.\n\n### Text and Symbols\nIdentify and transcribe any visible text, logos, signs, watermarks, or branding.\n\n### Key Highlights\n- List the 5-7 most notable observations as bullet points\n\n### Sentiment and Tone\nDescribe the emotional mood, atmosphere, and tone this image evokes.\n\n### Conclusion\nSummarize the overall message, intent, or story this image communicates.';
+}
+
+function makeVideoPrompt(desc, lang) {
+    return 'Perform a comprehensive expert-level analysis of this video.\nVideo info: ' + desc + '\n\nWrite a detailed structured report with these sections:\n\n### Topic and Overview\nWhat is this video about? Provide full context, background, and purpose.\n\n### Content Breakdown\nDescribe the content in detail — what happens, what is shown or discussed, key moments, and flow.\n\n### Target Audience and Purpose\nWho is this made for? What is its intent — educational, entertainment, marketing, news?\n\n### Style and Presentation\nDescribe production style, visual and audio quality, editing, pacing, and presentation.\n\n### Key Points\nExtract the most important messages, facts, claims, or takeaways.\n\n### Key Highlights\n- List the 5-7 most notable aspects as bullet points\n\n### Overall Assessment\nEvaluate quality, effectiveness, credibility, and impact.\n\n### Sentiment and Tone\nWhat is the overall tone — serious, humorous, urgent, inspirational? Describe the emotional register.\n\n### Conclusion\nFinal verdict — what is the overall value and takeaway of this video?';
+}
+
+function makeSurvPrompt(fileInfo, lang) {
+    return 'You are a professional security analyst. Analyze this surveillance footage: ' + fileInfo + '\n\nWrite a comprehensive security intelligence report with these sections:\n\n### Scene Overview\nDescribe the location, area type, surveillance context, and time indicators.\n\n### Environment Assessment\nAnalyze the physical layout, visibility, lighting, entry and exit points, security infrastructure visible.\n\n### Personnel and Activity\nIdentify all individuals present — count, positions, movements, behaviors, notable actions.\n\n### Objects and Assets\nIdentify significant objects, vehicles, equipment, or assets visible.\n\n### Threats and Anomalies\nIdentify suspicious behavior, security risks, access violations, unusual patterns, or potential threats.\n\n### Key Highlights\n- List the 5-7 most critical security observations as bullet points\n\n### Recommendations\nProvide actionable security recommendations based on the analysis.\n\n### Sentiment and Tone\nDescribe the situational tone — calm, tense, routine, high-risk — and behavioral patterns observed.\n\n### Conclusion\nFinal security assessment with overall risk level and summary verdict.';
+}
+
+function makeDocPrompt(content, fileName, lang) {
+    var hasContent = content && content.length > 80;
+    return 'You are an expert document analyst. Perform a comprehensive in-depth analysis.\n\n' +
+           (hasContent ? 'Document content:\n\n' + content + '\n\n' : 'Document file: "' + fileName + '" — analyze based on filename and file type.\n\n') +
+           'Write a detailed structured report:\n\n### Purpose and Overview\nWhat is this document? Its purpose, context, and intended use.\n\n### Structure and Organization\nDescribe the document structure, sections, formatting, and how it is organized.\n\n### Content Analysis\nThorough analysis of all main topics, arguments, and information.\n\n### Key Findings and Data\nMost important facts, figures, claims, data points, and conclusions.\n\n### Target Audience\nWho is this written for? What expertise level is assumed?\n\n### Background and Context\nRelevant context or background that helps understand this document.\n\n### Key Highlights\n- List the 5-7 most important takeaways as bullet points\n\n### Sentiment and Tone\nWriting tone — formal or informal, objective or persuasive, technical or accessible — and overall sentiment.\n\n### Conclusion\nComprehensive final assessment of quality, completeness, and overall value.';
+}
+
+function setStatus(t) {
+    var el = document.querySelector("#loadingState .loading-sub");
+    if (el) el.textContent = t;
+}
+
+// ============================================
+// ANALYZE IMAGE
+// ============================================
+async function analyzeImage() {
+    if (!uploadedImage) return;
+    cancelled = false;
+    var btn = document.getElementById("analyzeImageBtn");
+    showLoading("Analyzing image with Groq Vision...");
+    btnBusy(btn, true);
+    try {
+        var lang = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        var msgs = [{ role:"user", content:[
+            { type:"image_url", image_url:{ url:"data:" + uploadedImageMime + ";base64," + uploadedImage } },
+            { type:"text", text: makeImagePrompt(lang) }
+        ]}];
+        var result = await analyzeAndTranslate(msgs, API_IMAGE, true, lang);
+        showResults(result.english, result.translated);
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeImage);
+        else if (e.message !== "CANCELLED") showError(e.message);
+    }
+    btnBusy(btn, false);
+}
+
+// ============================================
+// ANALYZE VIDEO
+// ============================================
+async function analyzeVideo() {
+    var url = document.getElementById("videoInput").value.trim();
+    if (!url) return;
+    cancelled = false;
+    var btn      = document.getElementById("analyzeVideoBtn");
+    var platform = getPlatform(url) || "video";
+    showLoading("Fetching video info...");
+    btnBusy(btn, true);
+    try {
+        var lang  = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        var extra = "";
+        if (platform === "YouTube") {
+            try {
+                var oRes = await fetch("https://www.youtube.com/oembed?url=" + encodeURIComponent(url) + "&format=json");
+                if (oRes.ok) {
+                    var oData = await oRes.json();
+                    extra = "\nTitle: " + oData.title + "\nChannel: " + oData.author_name;
+                }
+            } catch(e2) {}
+        }
+        setStatus("Generating deep analysis with Groq AI...");
+        var desc = "Platform: " + platform + "\nURL: " + url + extra;
+        var msgs = [{ role:"user", content: makeVideoPrompt(desc, lang) }];
+        var result = await analyzeAndTranslate(msgs, API_VIDEO, false, lang);
+        showResults(result.english, result.translated);
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeVideo);
+        else if (e.message !== "CANCELLED") showError(e.message);
+    }
+    btnBusy(btn, false);
+}
+
+// ============================================
+// ANALYZE SURVEILLANCE
+// ============================================
+async function analyzeSurv() {
+    if (!uploadedSurv) return;
+    cancelled = false;
+    var btn = document.getElementById("analyzeSurvBtn");
+    showLoading("Extracting frame from video...");
+    btnBusy(btn, true);
+    try {
+        var lang = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        try {
+            setStatus("Capturing video frame...");
+            var frame = await grabVideoFrame(uploadedSurv);
+            setStatus("Running security analysis with Groq Vision...");
+            var msgs = [{ role:"user", content:[
+                { type:"image_url", image_url:{ url:"data:image/jpeg;base64,"+frame } },
+                { type:"text", text: makeSurvPrompt(uploadedSurv.name, lang) }
+            ]}];
+            var result = await analyzeAndTranslate(msgs, API_SURV, true, lang);
+            showResults(result.english, result.translated);
+        } catch(frameErr) {
+            setStatus("Frame capture failed, running metadata analysis...");
+            var sizeMB = (uploadedSurv.size/1024/1024).toFixed(1);
+            var info   = uploadedSurv.name + " (" + sizeMB + " MB, " + (uploadedSurv.type||"video") + ")";
+            var msgs2  = [{ role:"user", content: makeSurvPrompt(info, lang) }];
+            var result = await analyzeAndTranslate(msgs2, API_SURV, false, lang);
+            showResults(result.english, result.translated);
+        }
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeSurv);
+        else if (e.message !== "CANCELLED") showError(e.message);
+    }
+    btnBusy(btn, false);
+}
+
+// ============================================
+// SURVEILLANCE Q&A
+// ============================================
+function onSurvQuestionInput() {
+    var q   = (document.getElementById("survQuestion") || {}).value || "";
+    var btn = document.getElementById("askSurvBtn");
+    if (btn) btn.disabled = (!q.trim() || !uploadedSurv);
+}
+
+async function askSurv() {
+    var questionEl = document.getElementById("survQuestion");
+    var question   = questionEl ? questionEl.value.trim() : "";
+    if (!question || !uploadedSurv) return;
+    cancelled = false;
+    var btn  = document.getElementById("askSurvBtn");
+    appendChatMsg("user", question);
+    questionEl.value = "";
+    if (btn) btn.disabled = true;
+    var thinkId = appendChatMsg("ai", "...", true);
+    try {
+        if (!survFrame) {
+            updateChatMsg(thinkId, "Extracting video frame...");
+            try { survFrame = await grabVideoFrame(uploadedSurv); } catch(e) { survFrame = null; }
+        }
+        survChatHistory.push({ role: "user", content: question });
+        var sysPrompt = 'You are an expert AI security analyst with access to surveillance footage from "' + uploadedSurv.name + '".\nAnswer questions about the video content accurately and in detail.\nBase your answers on what is visible in the footage frame provided.\nKeep answers clear, professional, and focused on the question asked.\nAlways answer in English only, regardless of the language of the question.';
+        var msgs = [{ role: "system", content: sysPrompt }];
+        var historySlice = survChatHistory.slice(-6);
+        if (survFrame) {
+            var firstUserIdx = historySlice.findIndex(function(m){ return m.role === "user"; });
+            historySlice.forEach(function(m, idx) {
+                if (idx === firstUserIdx) {
+                    msgs.push({ role:"user", content:[
+                        { type:"image_url", image_url:{ url:"data:image/jpeg;base64," + survFrame } },
+                        { type:"text", text: m.content }
+                    ]});
+                } else { msgs.push(m); }
+            });
+        } else {
+            var meta = uploadedSurv.name + " (" + (uploadedSurv.size/1024/1024).toFixed(1) + " MB)";
+            msgs.push({ role:"user", content:"Context: Surveillance video file — " + meta + "\n\nQuestion: " + question });
+        }
+        var keyOrder = [API_SURV].concat(ALL_KEYS.filter(function(k){ return k !== API_SURV; }));
+        var answer = "";
+        for (var ki = 0; ki < keyOrder.length; ki++) {
+            if (cancelled) throw new Error("CANCELLED");
+            try {
+                var payload = { model: survFrame ? VISION_MODEL : TEXT_MODEL, messages: msgs, max_tokens: 1000, temperature: 0.3 };
+                var res = await fetch(GROQ_BASE, { method:"POST", headers:{"Authorization":"Bearer "+keyOrder[ki],"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+                if (!res.ok) {
+                    var errData = await res.json().catch(function(){ return {}; });
+                    var errMsg  = (errData.error && errData.error.message) ? errData.error.message : ("HTTP " + res.status);
+                    if (isRateErr(errMsg)) { await sleep(800); continue; }
+                    throw new Error(errMsg);
+                }
+                var data = await res.json();
+                answer = (data.choices && data.choices[0] && data.choices[0].message) ? data.choices[0].message.content.trim() : "";
+                if (answer) break;
+            } catch(e) {
+                if (e.message === "CANCELLED") throw e;
+                if (isRateErr(e.message)) { await sleep(800); continue; }
+                throw e;
+            }
+        }
+        if (!answer) throw new Error("No answer received. Please try again.");
+        survChatHistory.push({ role: "assistant", content: answer });
+        updateChatMsg(thinkId, answer, false);
+    } catch(e) {
+        var errTxt = e.message === "CANCELLED" ? "Cancelled." : ("Error: " + e.message);
+        updateChatMsg(thinkId, errTxt, false, true);
+        if (e.message !== "CANCELLED") survChatHistory.pop();
+    }
+    if (btn) btn.disabled = false;
+    if (questionEl) questionEl.focus();
+}
+
+function appendChatMsg(role, text, thinking) {
+    var box = document.getElementById("survChatBox");
+    if (!box) return null;
+    var id  = "cm_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    var div = document.createElement("div");
+    div.id        = id;
+    div.className = "chat-msg " + (role === "user" ? "chat-user" : "chat-ai") + (thinking ? " chat-thinking" : "");
+    div.innerHTML = role === "user"
+        ? "<span class='chat-you'>You</span><p>" + escHtml(text) + "</p>"
+        : "<span class='chat-bot'>AI</span><p>" + (thinking ? "<span></span>" : escHtml(text)) + "</p>";
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return id;
+}
+
+function updateChatMsg(id, text, thinking, isError) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("chat-thinking");
+    if (isError) el.classList.add("chat-error");
+    el.innerHTML = "<span class='chat-bot'>AI</span><p>" + (thinking ? "<span></span>" : escHtml(text)) + "</p>";
+    var box = document.getElementById("survChatBox");
+    if (box) box.scrollTop = box.scrollHeight;
+}
+
+function clearSurvChat() {
+    survChatHistory = [];
+    var box = document.getElementById("survChatBox");
+    if (box) box.innerHTML = '<div class="chat-empty">Ask anything about the footage above</div>';
+}
+
+function setSurvMode(mode) {
+    var analyzeBtn = document.getElementById("survModeAnalyze");
+    var qaBtn      = document.getElementById("survModeQA");
+    var analyzeP   = document.getElementById("survAnalyzePanel");
+    var qaP        = document.getElementById("survQAPanel");
+    if (mode === "analyze") {
+        if (analyzeBtn) analyzeBtn.classList.add("active");
+        if (qaBtn)      qaBtn.classList.remove("active");
+        if (analyzeP)   analyzeP.style.display = "block";
+        if (qaP)        qaP.style.display = "none";
+    } else {
+        if (qaBtn)      qaBtn.classList.add("active");
+        if (analyzeBtn) analyzeBtn.classList.remove("active");
+        if (qaP)        qaP.style.display = "block";
+        if (analyzeP)   analyzeP.style.display = "none";
+        onSurvQuestionInput();
+    }
+}
+
+function setQuestion(q) {
+    var el = document.getElementById("survQuestion");
+    if (el) { el.value = q; onSurvQuestionInput(); el.focus(); }
+}
+
+// ============================================
+// ANALYZE DOCUMENT
+// ============================================
+async function analyzeDoc() {
+    if (!uploadedDoc) return;
+    cancelled = false;
+    var btn = document.getElementById("analyzeDocBtn");
+    showLoading("Reading document...");
+    btnBusy(btn, true);
+    try {
+        var lang = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        var ext  = uploadedDoc.name.split(".").pop().toLowerCase();
+        var text = "";
+        if (ext === "pdf")                  { setStatus("Extracting PDF text (up to 10 pages)..."); text = await readPdf(uploadedDoc); }
+        else if (ext==="docx"||ext==="doc") { setStatus("Extracting Word document text..."); text = await readDocx(uploadedDoc); }
+        setStatus("Generating deep document analysis...");
+        var msgs = [{ role:"user", content: makeDocPrompt(text, uploadedDoc.name, lang) }];
+        var result = await analyzeAndTranslate(msgs, API_DOC, false, lang);
+        showResults(result.english, result.translated);
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeDoc);
+        else if (e.message !== "CANCELLED") showError(e.message);
+    }
+    btnBusy(btn, false);
+}
+
+// ============================================
+// COUNTDOWN
+// ============================================
+function startCountdown(fn) {
+    retryFn = fn; cancelled = false; retryCount++;
+    if (retryCount > RETRY_WAITS.length) {
+        retryCount = 0;
+        showError("Still rate limited. Please wait 1-2 minutes then try again.");
+        return;
+    }
+    var TOTAL = RETRY_WAITS[retryCount - 1];
+    var left  = TOTAL;
+    var C     = 2 * Math.PI * 52;
+    ["loadingState","resultsGrid","errorState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display = "none";
+    });
+    document.getElementById("countdownState").style.display = "flex";
+    document.getElementById("summarySection").scrollIntoView({behavior:"smooth"});
+    var badge = document.getElementById("cdBadge");
+    if (badge) badge.textContent = "Attempt " + retryCount + " of " + RETRY_WAITS.length;
+    function tick() {
+        if (cancelled) { clearInterval(cdTimer); return; }
+        document.getElementById("cdNum").textContent = left;
+        document.getElementById("cdSec").textContent = left;
+        var circle = document.getElementById("cdCircle");
+        if (circle) circle.style.strokeDashoffset = C * (1 - left/TOTAL);
+        if (left <= 0) {
+            clearInterval(cdTimer); cdTimer = null;
+            document.getElementById("countdownState").style.display = "none";
+            showLoading("Retrying...");
+            if (retryFn && !cancelled) retryFn();
+        }
+        left--;
+    }
+    tick();
+    cdTimer = setInterval(tick, 1000);
+}
+
+function stopCountdown() {
+    cancelled = true;
+    if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+    retryFn = null;
+    var el = document.getElementById("countdownState");
+    if (el) el.style.display = "none";
+}
+
+// ============================================
+// RICH RENDERER
+// ============================================
+function renderRichContent(text) {
+    if (!text) return "<p class='rc-text'>—</p>";
+    var lines     = text.split(/\n/);
+    var html      = "";
+    var inSection = false;
+    var inBullets = false;
+    function closeBullets() { if (inBullets) { html += "</ul>"; inBullets = false; } }
+    function closeSection()  { closeBullets(); if (inSection) { html += "</div></div>"; inSection = false; } }
+    lines.forEach(function(line) {
+        var raw = line.trim();
+        if (raw.startsWith("###")) {
+            closeSection();
+            var title = raw.replace(/^###\s*/, "").trim();
+            html += '<div class="rich-section"><div class="rich-heading">' + escHtml(title) + '</div><div class="rich-body">';
+            inSection = true;
+            return;
+        }
+        if (!raw) { closeBullets(); return; }
+        if (/^[•\-\*]/.test(raw)) {
+            if (!inBullets) { html += '<ul class="rich-bullets">'; inBullets = true; }
+            html += "<li>" + escHtml(raw.replace(/^[•\-\*]\s*/,"")) + "</li>";
+            return;
+        }
+        closeBullets();
+        html += "<p class='rich-para'>" + escHtml(raw) + "</p>";
+    });
+    closeSection();
+    return html || "<p class='rc-text'>—</p>";
+}
+
+// ============================================
+// UI HELPERS
+// ============================================
+function btnBusy(btn, busy) {
+    btn.disabled  = busy;
+    btn.innerHTML = busy
+        ? "<span>&#9203; Analyzing...</span>"
+        : "<span>&#9889;</span><span>Analyze with AI</span>";
+}
+
+function showLoading(msg) {
+    ["resultsGrid","errorState","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+    document.getElementById("loadingState").style.display = "flex";
+    setStatus(msg);
+    document.getElementById("summarySection").scrollIntoView({behavior:"smooth"});
+}
+
+function showResults(en, tr) {
+    stopCountdown(); cancelled = false; retryCount = 0;
+    ["loadingState","errorState","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+    var enEl = document.getElementById("englishSummary");
+    var trEl = document.getElementById("translatedSummary");
+    if (enEl) enEl.innerHTML = renderRichContent(en  || "—");
+    if (trEl) trEl.innerHTML = renderRichContent(tr  || "(Translation unavailable)");
+    var lang    = languages[selectedLang];
+    var titleEl = document.getElementById("translatedTitle");
+    if (titleEl) titleEl.textContent = lang.name + " Analysis";
+    document.getElementById("resultsGrid").style.display = "block";
+    document.getElementById("summarySection").scrollIntoView({behavior:"smooth"});
+}
+
+function showError(msg) {
+    stopCountdown();
+    ["loadingState","resultsGrid","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+    document.getElementById("errorMsg").textContent = msg;
+    document.getElementById("errorState").style.display = "flex";
+}
+
+function clearAll() {
+    stopCountdown(); cancelled = false; retryCount = 0;
+    ["loadingState","resultsGrid","errorState","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+}
+
+// ============================================
+// BOOT
+// ============================================
+initLanguages();
+["videoTab","surveillanceTab","documentTab"].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.style.display="none";
+});
+document.getElementById("imageTab").style.display = "block";
+</script>
+</body>
+</html>
