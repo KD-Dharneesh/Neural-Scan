@@ -10,10 +10,10 @@ const TEXT_MODEL   = "llama-3.3-70b-versatile";
 // ============================================
 
 // Split keys into parts (basic obfuscation)
-const _k1 = ["gsk_", "bhrM39X6LCxZL3E2lWic", "WGdyb3FYJLBezWUjHv2ZKbhANaaZecML"];
-const _k2 = ["gsk_", "SIZ5AQPqRMbojlwY8eTV", "WGdyb3FY0tKeMcjg5NbOxVSfFOLq2AnN"];
-const _k3 = ["gsk_", "STV0O7eT81qicggag31r", "WGdyb3FY0H7TEYlqRuELCSDt7olJD1kc"];
-const _k4 = ["gsk_", "Z2q07nkrMa7kKLyJRnB9", "WGdyb3FYsq7miywJBi5FBkKEJmbnYdeo"];
+const _k1 = ["gsk_", "z6I8eXJmodrqn8ejuyaN", "WGdyb3FY4RQHW5lh7QXq5KigPNG24qwb"];
+const _k2 = ["gsk_", "hPbGEFHZNbJhQBoP9NXL", "WGdyb3FYk7VwiPveeYFa179B3cBbbUBc"];
+const _k3 = ["gsk_", "Q3ixNvctyf9CKym9fw41", "WGdyb3FYXPQAGz3FYDILhIKGxin6ngkD"];
+const _k4 = ["gsk_", "bhzGKjyCB1UT3c7XSQFI", "WGdyb3FYE8QtDsQe0G4VZmVZiR3pKd5o"];
 
 // Join them
 const API_IMAGE = _k1.join("");
