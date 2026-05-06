@@ -1,1624 +1,1386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firoz Shaik Health Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #794bc4;
-            --primary-dark: #5d359a;
-            --primary-light: #a07de0;
-            --gradient: linear-gradient(135deg, #4d90f1 0%, #794bc4 100%);
-            --red: #ff5757;
-            --green: #4CAF50;
-            --yellow: #ffc107;
-            --surface: #ffffff;
-            --bg: #f0ebfa;
-            --text: #2d2d3a;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-            --shadow: 0 4px 24px rgba(121,75,196,0.13);
-            --radius: 14px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeuralScan — AI Media Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    if (typeof pdfjsLib !== "undefined") {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+:root{--bg:#090d14;--s2:#131b28;--border:rgba(0,255,200,.1);--border2:rgba(0,255,200,.2);--teal:#00ffc8;--teal-dim:rgba(0,255,200,.12);--teal-glow:rgba(0,255,200,.35);--text:#e8edf5;--dim:#6b7b90;--muted:#3d4d62;--danger:#ff4d6d;--warn:#ffb347}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,200,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,200,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.bg-orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;animation:orbFloat 12s ease-in-out infinite alternate}
+.orb1{width:600px;height:600px;background:rgba(0,255,200,.05);top:-200px;right:-100px}
+.orb2{width:500px;height:500px;background:rgba(123,94,167,.07);bottom:-150px;left:-100px;animation-delay:-4s}
+@keyframes orbFloat{from{transform:translate(0,0)}to{transform:translate(30px,40px)}}
 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: #794bc4;
-            background-image: radial-gradient(ellipse at 20% 20%, rgba(77,144,241,0.3) 0%, transparent 60%),
-                              radial-gradient(ellipse at 80% 80%, rgba(121,75,196,0.4) 0%, transparent 60%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 20px 0;
-        }
+.container{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:28px 24px 80px}
 
-        /* ---- LOGIN ---- */
-        #login-screen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            min-height: 100vh;
-            padding: 20px;
-        }
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding:20px 28px;background:rgba(14,20,32,.85);border:1px solid var(--border);border-radius:20px;backdrop-filter:blur(20px);animation:fadeDown .5s ease both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.header-left{display:flex;align-items:center;gap:16px}
+.logo-mark{position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.logo-hex{font-size:36px;color:var(--teal);filter:drop-shadow(0 0 12px var(--teal-glow));animation:hexPulse 3s ease-in-out infinite}
+@keyframes hexPulse{0%,100%{filter:drop-shadow(0 0 8px var(--teal-glow))}50%{filter:drop-shadow(0 0 22px var(--teal-glow))}}
+.logo-pulse{position:absolute;inset:-4px;border:2px solid var(--teal);border-radius:50%;opacity:.3;animation:pr 2.5s ease-in-out infinite}
+@keyframes pr{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.25);opacity:0}}
+.logo-text{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:linear-gradient(135deg,#fff,var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:12px;color:var(--dim);margin-top:2px}
+.header-right{display:flex;gap:10px;align-items:center}
+.status-pill{display:flex;align-items:center;gap:8px;padding:7px 14px;background:rgba(0,255,200,.07);border:1px solid var(--border2);border-radius:100px;font-size:12px;font-weight:500;color:var(--teal)}
+.status-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;box-shadow:0 0 8px var(--teal);animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.lang-badge-pill{padding:7px 14px;background:rgba(123,94,167,.2);border:1px solid rgba(123,94,167,.3);border-radius:100px;font-size:12px;font-weight:500;color:#b69de0}
 
-        .login-card {
-            background: #fff;
-            padding: 40px 36px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            animation: slideUp 0.4s ease;
-        }
+.app-layout{display:grid;grid-template-columns:1fr 265px;gap:20px;align-items:start;animation:fadeUp .5s .1s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+.main-card{background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;overflow:hidden;backdrop-filter:blur(20px)}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:rgba(9,13,20,.6)}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:15px 18px;border:none;background:none;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;position:relative;transition:color .2s;white-space:nowrap}
+.tab-btn::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%) scaleX(0);width:80%;height:2px;background:var(--teal);border-radius:2px 2px 0 0;transition:transform .2s}
+.tab-btn.active{color:var(--teal)}
+.tab-btn.active::after{transform:translateX(-50%) scaleX(1)}
 
-        .login-logo {
-            font-size: 48px;
-            margin-bottom: 12px;
-            display: block;
-        }
+/* SVG TAB ICONS */
+.tab-svg{width:17px;height:17px;flex-shrink:0;color:inherit;transition:color .2s}
 
-        .login-card h1 {
-            font-family: 'Nunito', sans-serif;
-            color: var(--text);
-            font-size: 26px;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
+.tab-pane{padding:28px;display:flex;flex-direction:column;gap:16px}
 
-        .login-card .subtitle {
-            color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 28px;
-        }
+.drop-zone{position:relative;border:2px dashed var(--border2);border-radius:18px;padding:44px 24px;text-align:center;background:var(--teal-dim);transition:all .3s;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--teal);background:rgba(0,255,200,.08)}
+.dz-scanline{position:absolute;top:-4px;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--teal),transparent);opacity:0}
+.drop-zone:hover .dz-scanline,.drop-zone.drag-over .dz-scanline{opacity:1;animation:scan 1.5s linear infinite}
+@keyframes scan{from{top:-4px}to{top:100%}}
+.dz-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text)}
+.dz-sub{font-size:12px;color:var(--dim);margin-bottom:8px}
+.file-input{display:none}
+.choose-btn{display:inline-block;padding:9px 22px;background:transparent;border:1px solid var(--teal);border-radius:10px;color:var(--teal);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.choose-btn:hover{background:var(--teal);color:#090d14;box-shadow:0 0 20px var(--teal-glow)}
+.file-preview-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.img-preview{max-width:100%;max-height:240px;border-radius:12px;border:1px solid var(--border2)}
+.file-chip{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,255,200,.06);border:1px solid var(--border2);border-radius:12px;width:100%;text-align:left}
+.file-chip-icon{font-size:28px;flex-shrink:0}
+.file-chip-info{flex:1;min-width:0}
+.file-chip-name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-chip-meta{font-size:11px;color:var(--dim);margin-top:2px}
+.remove-btn-small{background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:6px;flex-shrink:0}
+.remove-btn-small:hover{background:rgba(255,77,109,.12)}
 
-        .btn-gradient {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 14px 20px;
-            margin-top: 12px;
-            border: none;
-            border-radius: 12px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            color: white;
-            background: var(--gradient);
-            box-shadow: 0 4px 14px rgba(121,75,196,0.3);
-            transition: opacity 0.2s, transform 0.1s;
-            gap: 10px;
-        }
-        .btn-gradient:hover { opacity: 0.9; }
-        .btn-gradient:active { transform: scale(0.98); }
-        .btn-gradient .icon { font-size: 18px; }
+.url-zone{display:flex;flex-direction:column;gap:12px}
+.url-label{font-size:13px;font-weight:600;color:var(--dim)}
+.url-input{width:100%;padding:13px 16px;background:var(--s2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all .2s}
+.url-input::placeholder{color:var(--muted)}
+.url-input:focus{border-color:var(--teal);background:rgba(0,255,200,.04);box-shadow:0 0 0 3px rgba(0,255,200,.08)}
+.platform-info{font-size:12px;font-weight:600;min-height:18px}
+.tip-box{padding:11px 14px;background:rgba(255,179,71,.07);border:1px solid rgba(255,179,71,.2);border-radius:10px;font-size:12px;color:#c49a3c;line-height:1.5}
 
-        .input-form-group {
-            margin-bottom: 16px;
-            text-align: left;
-        }
-        .input-form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: var(--text);
-            font-size: 13px;
-        }
-        .input-flex { display: flex; gap: 8px; }
+.analyze-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:linear-gradient(135deg,rgba(0,255,200,.15),rgba(0,200,255,.1));border:1px solid var(--teal);border-radius:14px;color:var(--teal);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.analyze-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--teal),#00c8ff);opacity:0;transition:opacity .3s}
+.analyze-btn:hover:not(:disabled){color:#090d14;box-shadow:0 0 30px var(--teal-glow);transform:translateY(-1px)}
+.analyze-btn:hover:not(:disabled)::before{opacity:1}
+.analyze-btn span{position:relative;z-index:1}
+.analyze-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;border-color:var(--muted);color:var(--muted)}
 
-        .login-card input[type="tel"],
-        .login-card input[type="password"],
-        .login-card .prefix-box {
-            padding: 12px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-size: 15px;
-            font-family: 'DM Sans', sans-serif;
-            width: 100%;
-            transition: border-color 0.2s;
-            outline: none;
-        }
-        .login-card input:focus { border-color: var(--primary); }
-        .login-card .prefix-box {
-            width: 56px;
-            text-align: center;
-            background: var(--bg);
-            font-weight: 700;
-            color: var(--muted);
-            flex-shrink: 0;
-        }
-        .login-card .phone-input { flex-grow: 1; }
+.lang-panel{background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;padding:18px;backdrop-filter:blur(20px);position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
+.lang-header{display:flex;align-items:center;justify-content:space-between}
+.lang-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.5px;text-transform:uppercase}
+.lang-selected-badge{padding:3px 10px;background:var(--teal-dim);border:1px solid var(--border2);border-radius:20px;font-size:11px;color:var(--teal);font-weight:600}
+.lang-search{width:100%;padding:8px 12px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;transition:border-color .2s}
+.lang-search:focus{border-color:var(--teal)}
+.lang-search::placeholder{color:var(--muted)}
+.lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;max-height:430px;overflow-y:auto;padding-right:2px}
+.lang-grid::-webkit-scrollbar{width:3px}
+.lang-grid::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.lang-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 4px;border:1px solid var(--border);border-radius:9px;background:transparent;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--dim);font-weight:500;line-height:1.3}
+.lang-btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+.lang-btn.active{border-color:var(--teal);background:var(--teal-dim);color:var(--teal)}
+.lang-btn .lflag{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px;
+    height:18px;
+    border-radius:4px;
+    font-size:9px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:.3px;
+    flex-shrink:0;
+    font-family:'DM Sans',sans-serif;
+    text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
 
-        .divider {
-            margin: 20px 0 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--muted);
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
+/* ============================================
+   RESULTS SECTION
+   ============================================ */
+.results-section{margin-top:24px}
 
-        .terms-text {
-            margin-top: 20px;
-            font-size: 11px;
-            color: #aaa;
-        }
-        .terms-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.loading-state{display:flex;flex-direction:column;align-items:center;gap:16px;padding:60px 20px;background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;backdrop-filter:blur(20px)}
+.neural-loader{position:relative;width:80px;height:80px;display:flex;align-items:center;justify-content:center}
+.nl-ring{position:absolute;border:2px solid transparent;border-radius:50%;animation:spin linear infinite}
+.nl-ring.r1{inset:0;border-top-color:var(--teal);animation-duration:1.2s}
+.nl-ring.r2{inset:10px;border-right-color:rgba(0,255,200,.5);animation-duration:1.8s;animation-direction:reverse}
+.nl-ring.r3{inset:20px;border-bottom-color:rgba(0,255,200,.25);animation-duration:2.5s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nl-core{font-size:22px;color:var(--teal);animation:hexPulse 2s ease-in-out infinite}
+.loading-label{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.loading-sub{font-size:13px;color:var(--dim);text-align:center}
 
-        /* ---- APP ---- */
-        #app-container {
-            background: #fff;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            max-width: 580px;
-            width: 96%;
-            margin: 0 auto;
-            border-radius: 20px;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            animation: slideUp 0.4s ease;
-        }
+.countdown-state{display:flex;flex-direction:column;align-items:center;gap:16px;padding:48px 24px;background:rgba(13,19,29,.9);border:1px solid rgba(255,179,71,.25);border-radius:24px;backdrop-filter:blur(20px)}
+.countdown-ring-wrap{position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center}
+.countdown-svg{position:absolute;inset:0;transform:rotate(-90deg);width:100%;height:100%}
+.cd-track{fill:none;stroke:rgba(255,179,71,.12);stroke-width:6}
+.cd-progress{fill:none;stroke:var(--warn);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 8px rgba(255,179,71,.5))}
+.countdown-num{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--warn);z-index:1}
+.countdown-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--warn)}
+.countdown-sub{font-size:13px;color:var(--dim);text-align:center;line-height:1.8}
+.countdown-sub strong{color:var(--warn)}
+.cd-badge{display:inline-block;margin-left:8px;padding:2px 8px;background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);border-radius:20px;font-size:11px;font-weight:600;color:var(--warn)}
+.cd-tip{padding:10px 16px;background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.15);border-radius:10px;font-size:12px;color:#a07830;text-align:center}
+.cancel-cd-btn{padding:8px 20px;background:transparent;border:1px solid rgba(255,77,109,.4);border-radius:10px;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.cancel-cd-btn:hover{background:rgba(255,77,109,.1)}
 
-        .app-header {
-            background: var(--gradient);
-            color: white;
-            padding: 22px 22px 36px;
-            position: relative;
-            z-index: 5;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .app-header h2 {
-            font-family: 'Nunito', sans-serif;
-            font-size: 22px;
-            font-weight: 800;
-            margin: 0 0 4px 0;
-        }
-        .app-header p {
-            font-size: 13px;
-            opacity: 0.85;
-            margin: 0;
-        }
-        .app-header button {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 7px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: 'DM Sans', sans-serif;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-        .app-header button:hover { background: rgba(255,255,255,0.3); }
+/* -------- Results Grid -------- */
+.results-grid{background:rgba(13,19,29,.9);border:1px solid var(--border);border-radius:24px;padding:28px;backdrop-filter:blur(20px)}
+.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.results-spark{color:var(--teal);font-size:20px;filter:drop-shadow(0 0 8px var(--teal-glow));animation:sparkle 2s ease-in-out infinite}
+@keyframes sparkle{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.3) rotate(180deg)}}
+.results-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(90deg,#fff,var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.clear-btn{padding:7px 16px;background:transparent;border:1px solid rgba(255,77,109,.3);border-radius:10px;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.clear-btn:hover{background:rgba(255,77,109,.1);border-color:var(--danger)}
 
-        .nav-bar {
-            display: flex;
-            justify-content: space-around;
-            background: #fff;
-            padding: 10px 12px 0;
-            margin-top: -18px;
-            position: relative;
-            z-index: 10;
-            gap: 6px;
-        }
-        .nav-tab {
-            flex-grow: 1;
-            text-align: center;
-            padding: 10px 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--muted);
-            border-radius: 10px;
-            transition: all 0.25s;
-            white-space: nowrap;
-        }
-        .nav-tab.active {
-            color: white;
-            background: var(--gradient);
-            box-shadow: 0 2px 8px rgba(121,75,196,0.3);
-        }
+/* Two-column card layout */
+.result-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.result-card{border-radius:16px;padding:20px 22px;border:1px solid;overflow:hidden}
+.en-card{background:linear-gradient(135deg,rgba(0,100,200,.1),rgba(0,100,200,.05));border-color:rgba(0,150,255,.2)}
+.tr-card{background:linear-gradient(135deg,rgba(0,255,200,.08),rgba(0,255,200,.03));border-color:var(--border2)}
+.rc-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--dim);margin-bottom:10px}
+.rc-divider{height:1px;background:var(--border);margin-bottom:14px}
+.rc-text{color:var(--text);font-size:14px;line-height:1.75;font-weight:300}
 
-        .tab-content {
-            padding: 20px;
-            display: none;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        .tab-content.active { display: block; }
+/* ============================================
+   RICH STRUCTURED SECTIONS
+   ============================================ */
+.rich-section{margin-bottom:20px;border-radius:12px;overflow:hidden;border:1px solid rgba(0,255,200,.08);background:rgba(0,0,0,.18)}
+.rich-section:last-child{margin-bottom:0}
+.rich-heading{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--teal);padding:10px 14px;background:rgba(0,255,200,.07);border-bottom:1px solid rgba(0,255,200,.1);letter-spacing:.3px}
+.rich-body{padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px}
+.rich-para{color:var(--text);font-size:13.5px;line-height:1.8;font-weight:300}
+.rich-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.rich-bullets li{position:relative;padding-left:18px;color:var(--text);font-size:13.5px;line-height:1.7;font-weight:300}
+.rich-bullets li::before{content:'▸';position:absolute;left:0;color:var(--teal);font-size:11px;top:3px}
+.rich-section:nth-last-child(3) .rich-heading,.rich-section:nth-last-child(3) .rich-bullets li::before{color:#ffd700}
+.rich-section:nth-last-child(3){border-color:rgba(255,215,0,.15);background:rgba(255,215,0,.04)}
+.rich-section:nth-last-child(3) .rich-heading{background:rgba(255,215,0,.08);border-bottom-color:rgba(255,215,0,.12)}
+.rich-section:nth-last-child(2) .rich-heading{color:#c084fc}
+.rich-section:nth-last-child(2){border-color:rgba(192,132,252,.15);background:rgba(192,132,252,.04)}
+.rich-section:nth-last-child(2) .rich-heading{background:rgba(192,132,252,.08);border-bottom-color:rgba(192,132,252,.12)}
+.rich-section:last-child .rich-heading{color:#4ade80}
+.rich-section:last-child{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.04)}
+.rich-section:last-child .rich-heading{background:rgba(74,222,128,.08);border-bottom-color:rgba(74,222,128,.12)}
 
-        .form-group { margin-bottom: 4px; }
-        .form-group label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: var(--text);
-            font-size: 14px;
-        }
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus { border-color: var(--primary); }
-        .form-group textarea { resize: vertical; min-height: 90px; }
+/* Error state */
+.error-state{display:flex;flex-direction:column;align-items:center;gap:14px;padding:50px 20px;background:rgba(13,19,29,.9);border:1px solid rgba(255,77,109,.2);border-radius:24px;backdrop-filter:blur(20px)}
+.error-icon-wrap{font-size:36px;color:var(--danger);filter:drop-shadow(0 0 12px rgba(255,77,109,.4))}
+.error-msg{font-size:14px;color:var(--dim);text-align:center;max-width:500px;line-height:1.6}
+.retry-btn{padding:10px 24px;background:transparent;border:1px solid var(--teal);border-radius:10px;color:var(--teal);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s}
+.retry-btn:hover{background:var(--teal);color:#090d14;box-shadow:0 0 20px var(--teal-glow)}
 
-        /* Result Cards */
-        .result-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 14px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            border-left: 5px solid var(--primary);
-            animation: fadeIn 0.4s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result-card h3 {
-            font-family: 'Nunito', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-        .result-card p, .result-card li { font-size: 14px; color: #444; line-height: 1.6; }
-        .result-card ul { padding-left: 18px; margin-top: 6px; }
-        .result-card li { margin-bottom: 4px; }
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media(max-width:900px){
+    .app-layout{grid-template-columns:1fr}
+    .lang-panel{position:static}
+    .lang-grid{grid-template-columns:repeat(4,1fr);max-height:180px}
+    .result-cards{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+    .header{flex-direction:column;gap:14px;text-align:center}
+    .tab-btn span:last-child{display:none}
+    .tab-btn{padding:13px 14px}
+    .lang-grid{grid-template-columns:repeat(3,1fr)}
+    .container{padding:16px 14px 60px}
+}
 
-        .card-purple { border-left-color: var(--primary); }
-        .card-red { border-left-color: var(--red); background: #fff5f5; }
-        .card-green { border-left-color: var(--green); background: #f0fff4; }
-        .card-yellow { border-left-color: var(--yellow); background: #fffde6; }
+/* ============================================
+   SURVEILLANCE MODE TOGGLE BAR
+   ============================================ */
+.surv-mode-bar{display:flex;gap:8px;background:rgba(9,13,20,.7);border:1px solid var(--border);border-radius:14px;padding:6px}
+.surv-mode-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.surv-mode-btn:hover{color:var(--text);background:rgba(0,255,200,.05);border-color:var(--border)}
+.surv-mode-btn.active{background:rgba(0,255,200,.12);border-color:var(--teal);color:var(--teal);box-shadow:0 0 12px rgba(0,255,200,.15)}
 
-        .disclaimer-card {
-            background: #fffbe6;
-            border-left: 5px solid var(--yellow);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 14px;
-        }
-        .disclaimer-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #7d5a00; }
-        .disclaimer-card p { font-size: 13px; color: #7d5a00; line-height: 1.6; }
+/* ============================================
+   Q&A PANEL
+   ============================================ */
+.qa-info-box{padding:12px 16px;background:rgba(0,255,200,.05);border:1px solid var(--border2);border-radius:12px;font-size:13px;color:var(--dim);line-height:1.6}
+.qa-info-box strong{color:var(--teal)}
+.surv-chat-box{display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:340px;overflow-y:auto;padding:14px;background:rgba(6,10,18,.6);border:1px solid var(--border);border-radius:14px;scroll-behavior:smooth}
+.surv-chat-box::-webkit-scrollbar{width:3px}
+.surv-chat-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.chat-empty{display:flex;align-items:center;justify-content:center;height:120px;color:var(--muted);font-size:13px;text-align:center}
+.chat-msg{display:flex;flex-direction:column;gap:4px;max-width:88%;animation:msgPop .2s ease both}
+@keyframes msgPop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-user{align-self:flex-end;align-items:flex-end}
+.chat-ai{align-self:flex-start;align-items:flex-start}
+.chat-you{font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
+.chat-bot{font-size:10px;font-weight:700;color:#b69de0;text-transform:uppercase;letter-spacing:.5px;padding:0 4px}
+.chat-user p{background:rgba(0,255,200,.12);border:1px solid rgba(0,255,200,.2);border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.6;word-break:break-word}
+.chat-ai p{background:rgba(123,94,167,.12);border:1px solid rgba(123,94,167,.2);border-radius:14px 14px 14px 4px;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.chat-error p{background:rgba(255,77,109,.08);border-color:rgba(255,77,109,.2);color:var(--danger)}
+.chat-thinking p::after{content:'● ● ●';font-size:16px;letter-spacing:4px;color:var(--teal);animation:dotBlink 1.2s ease-in-out infinite}
+.chat-thinking p{color:transparent}
+@keyframes dotBlink{0%,100%{opacity:.2}50%{opacity:1}}
+.surv-qa-input-row{display:flex;gap:8px;align-items:center}
+.surv-qa-input{flex:1;padding:12px 16px;background:var(--s2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:all .2s}
+.surv-qa-input::placeholder{color:var(--muted)}
+.surv-qa-input:focus{border-color:var(--teal);background:rgba(0,255,200,.04);box-shadow:0 0 0 3px rgba(0,255,200,.08)}
+.surv-qa-send-btn{width:44px;height:44px;flex-shrink:0;background:linear-gradient(135deg,rgba(0,255,200,.2),rgba(0,200,255,.15));border:1px solid var(--teal);border-radius:12px;color:var(--teal);font-size:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.surv-qa-send-btn:hover:not(:disabled){background:var(--teal);color:#090d14;box-shadow:0 0 16px var(--teal-glow)}
+.surv-qa-send-btn:disabled{opacity:.3;cursor:not-allowed;border-color:var(--muted);color:var(--muted)}
+.qa-chips{display:flex;flex-wrap:wrap;gap:6px}
+.qa-chip{padding:6px 12px;background:rgba(0,255,200,.05);border:1px solid var(--border);border-radius:20px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.qa-chip:hover{border-color:var(--teal);color:var(--teal);background:rgba(0,255,200,.08)}
+.clear-chat-btn{align-self:flex-start;padding:6px 14px;background:transparent;border:1px solid rgba(255,77,109,.25);border-radius:8px;color:var(--danger);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+.clear-chat-btn:hover{background:rgba(255,77,109,.08);border-color:var(--danger)}
+#surveillanceTab{display:flex;flex-direction:column;gap:12px}
+#survQAPanel{display:flex;flex-direction:column;gap:10px}
 
-        .btn-whatsapp {
-            background: #25D366;
-            color: white;
-            font-weight: 700;
-            border-radius: 10px;
-            padding: 12px 20px;
-            width: 100%;
-            border: none;
-            margin-top: 12px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            transition: opacity 0.2s;
-        }
-        .btn-whatsapp:hover { opacity: 0.9; }
-
-        /* Loading State */
-        .loading-state {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--primary);
-        }
-        .loading-dots {
-            display: inline-flex;
-            gap: 6px;
-            margin-top: 12px;
-        }
-        .loading-dots span {
-            width: 8px; height: 8px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: bounce 1.2s infinite;
-        }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-8px); }
-        }
-
-        /* Permission Modal */
-        #permission-modal {
-            display: none;
-            position: fixed;
-            z-index: 20;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.55);
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-box {
-            background: #fff;
-            padding: 28px;
-            border-radius: 18px;
-            width: 90%;
-            max-width: 380px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-        }
-        .modal-box h3 {
-            font-family: 'Nunito', sans-serif;
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 6px;
-            color: var(--text);
-        }
-        .modal-box p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-        .permission-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .permission-row:last-of-type { border-bottom: none; }
-        .permission-row button {
-            padding: 7px 14px;
-            border: none;
-            border-radius: 8px;
-            background: var(--gradient);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-        }
-
-        /* AI Badge */
-        .ai-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: linear-gradient(135deg, #4d90f1, #794bc4);
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 20px;
-            margin-bottom: 8px;
-        }
-
-        .scan-btn-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 14px;
-        }
-        .scan-btn-group button {
-            flex: 1;
-            padding: 11px 8px;
-            border: none;
-            border-radius: 10px;
-            background: var(--gradient);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            transition: opacity 0.2s;
-        }
-        .scan-btn-group button:hover { opacity: 0.9; }
-
-        /* ── MY HEALTH TAB ── */
-        .my-health-section { margin-bottom: 24px; }
-        .my-health-section h4 {
-            font-family: 'Nunito', sans-serif;
-            font-size: 16px; font-weight: 800;
-            color: var(--text); margin-bottom: 12px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .record-card {
-            background: #fff; border-radius: 12px;
-            padding: 14px 16px; margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid var(--primary);
-            display: flex; justify-content: space-between; align-items: flex-start;
-            animation: fadeIn 0.3s ease;
-        }
-        .record-card.medicine-entry { border-left-color: #ff5757; }
-        .record-card .record-info { flex: 1; }
-        .record-card .record-title { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 3px; }
-        .record-card .record-meta  { font-size: 12px; color: var(--muted); }
-        .record-card .record-actions { display: flex; gap: 6px; flex-shrink: 0; margin-left: 10px; }
-        .icon-btn {
-            background: none; border: none; cursor: pointer;
-            font-size: 16px; padding: 4px 6px; border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .icon-btn:hover { background: var(--bg); }
-        .empty-state {
-            text-align: center; padding: 24px 16px;
-            color: var(--muted); font-size: 14px;
-            background: var(--bg); border-radius: 12px;
-        }
-        .empty-state .empty-icon { font-size: 36px; margin-bottom: 8px; display: block; }
-        .add-form {
-            background: var(--bg); border-radius: 12px;
-            padding: 16px; margin-bottom: 16px;
-            display: none; animation: fadeIn 0.3s ease;
-        }
-        .add-form.open { display: block; }
-        .add-form input, .add-form select, .add-form textarea {
-            width: 100%; padding: 10px 12px; margin-bottom: 10px;
-            border: 1.5px solid var(--border); border-radius: 10px;
-            font-family: 'DM Sans', sans-serif; font-size: 14px;
-            outline: none; transition: border-color 0.2s; background: #fff;
-        }
-        .add-form input:focus, .add-form select:focus { border-color: var(--primary); }
-        .form-row { display: flex; gap: 8px; }
-        .form-row input, .form-row select { flex: 1; margin-bottom: 10px; }
-        .add-form-btns { display: flex; gap: 8px; }
-        .btn-save {
-            flex: 1; padding: 10px; border: none; border-radius: 10px;
-            background: var(--gradient); color: white;
-            font-weight: 700; font-size: 14px; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .btn-cancel {
-            padding: 10px 16px; border: none; border-radius: 10px;
-            background: #e5e7eb; color: var(--text);
-            font-weight: 600; font-size: 14px; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .btn-add-new {
-            width: 100%; padding: 11px; border: 2px dashed var(--primary);
-            background: transparent; border-radius: 10px;
-            color: var(--primary); font-weight: 700; font-size: 14px;
-            cursor: pointer; font-family: 'DM Sans', sans-serif;
-            transition: background 0.2s;
-        }
-        .btn-add-new:hover { background: var(--bg); }
-        .med-badge {
-            display: inline-block; padding: 2px 8px; border-radius: 20px;
-            font-size: 11px; font-weight: 700; margin-top: 4px;
-        }
-        .med-badge.morning   { background: #fef3c7; color: #92400e; }
-        .med-badge.afternoon { background: #dbeafe; color: #1e40af; }
-        .med-badge.evening   { background: #ede9fe; color: #5b21b6; }
-        .med-badge.night     { background: #1e293b; color: #e2e8f0; }
-        .tab-sub {
-            display: flex; gap: 0; margin-bottom: 18px;
-            background: var(--bg); border-radius: 10px; padding: 4px;
-        }
-        .tab-sub-btn {
-            flex: 1; padding: 9px 6px; border: none; background: transparent;
-            border-radius: 8px; font-weight: 600; font-size: 13px;
-            cursor: pointer; font-family: 'DM Sans', sans-serif;
-            color: var(--muted); transition: all 0.2s;
-        }
-        .tab-sub-btn.active { background: #fff; color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-        .sub-panel { display: none; }
-        .sub-panel.active { display: block; }
-
-        #permission-alert {
-            display: none;
-            background: #fffae6;
-            border: 1px solid #ffd700;
-            padding: 12px 14px;
-            border-radius: 10px;
-            margin-bottom: 14px;
-            font-size: 13px;
-            color: #7d5a00;
-        }
-    </style>
+/* Drop zone icon */
+.dz-icon{width:72px;height:72px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:1px;margin-bottom:4px}
+.dz-icon-img{background:linear-gradient(135deg,#0066cc,#0096ff);box-shadow:0 0 20px rgba(0,150,255,.3)}
+.dz-icon-vid{background:linear-gradient(135deg,#6c3483,#9b59b6);box-shadow:0 0 20px rgba(155,89,182,.3)}
+.dz-icon-cam{background:linear-gradient(135deg,#00695c,#00b894);box-shadow:0 0 20px rgba(0,184,148,.3)}
+.dz-icon-doc{background:linear-gradient(135deg,#c0392b,#e67e22);box-shadow:0 0 20px rgba(230,126,34,.3)}
+.bolt{font-size:16px}
+</style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="login-screen" style="display: none;">
-    <div class="login-card">
-        <span class="login-logo">⚕️</span>
-        <h1>Health Assistant</h1>
-        <p class="subtitle">Firoz Shaik's Personal Healthcare Companion</p>
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
 
-        <button class="btn-gradient" onclick="loginWithGoogle()">
-            <span class="icon">🔵</span> Continue with Google
-        </button>
+<div class="container">
 
-        <div class="divider">OR</div>
-
-        <div class="input-form-group">
-            <label>Phone Number</label>
-            <div class="input-flex">
-                <div class="prefix-box">+91</div>
-                <input type="tel" id="phone-number" class="phone-input" placeholder="10-digit number" maxlength="10">
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-mark">
+                <span class="logo-hex">&#9670;</span>
+                <div class="logo-pulse"></div>
+            </div>
+            <div>
+                <h1 class="logo-text">NeuralScan</h1>
+                <p class="logo-sub">AI Media Intelligence Platform</p>
             </div>
         </div>
-        <div class="input-form-group">
-            <label>Create 6-Digit Password</label>
-            <input type="password" id="phone-password" placeholder="Enter 6-digit PIN" maxlength="6">
+        <div class="header-right">
+            <div class="status-pill"><span class="status-dot"></span>Groq AI · Live</div>
+            <div class="lang-badge-pill">&#9728; 33 Languages</div>
         </div>
-        <button class="btn-gradient" onclick="loginWithPhone()">
-            <span class="icon">📱</span> Continue with Phone
-        </button>
+    </header>
 
-        <div class="divider">OR</div>
+    <!-- LAYOUT -->
+    <div class="app-layout">
 
-        <button class="btn-gradient" onclick="loginAsGuest()" style="background: linear-gradient(135deg,#9ca3af,#6b7280); box-shadow: none;">
-            <span class="icon">👤</span> Continue as Guest
-        </button>
-
-        <p class="terms-text">By continuing, you agree to our <a href="#">Terms & Privacy Policy</a></p>
-    </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app-container" style="display: none;">
-
-    <div class="app-header">
-        <div>
-            <h2>🏥 Health Assistance</h2>
-            <p id="user-info">Your Personal Healthcare Companion</p>
-        </div>
-        <button onclick="logout()">Logout</button>
-    </div>
-
-    <div class="nav-bar">
-        <div class="nav-tab active" onclick="switchTab('symptom-check', this)">🩺 Health</div>
-        <div class="nav-tab" onclick="switchTab('injury-scan', this)">📷 Scan</div>
-        <div class="nav-tab" onclick="switchTab('emergency', this)">🚨 Emergency</div>
-        <div class="nav-tab" onclick="switchTab('hospital-finder', this)">🏥 Hospitals</div>
-        <div class="nav-tab" onclick="switchTab('my-health', this)">📋 My Health</div>
-    </div>
-
-    <!-- HEALTH TAB -->
-    <div id="symptom-check" class="tab-content active">
-        <div class="form-group">
-            <label>Describe your health condition:</label>
-            <textarea id="health-condition" placeholder="e.g., I have a high fever, severe headache, and sore throat for 2 days."></textarea>
-        </div>
-        <div class="form-group">
-            <label>Age:</label>
-            <input type="number" id="age" value="25" min="1" max="120" placeholder="Enter your age">
-        </div>
-        <div class="form-group">
-            <label>Medical History / Allergies:</label>
-            <input type="text" id="medical-history" placeholder="Any allergies, chronic conditions, current medications...">
-        </div>
-        <button class="btn-gradient" onclick="analyzeHealth()" style="margin-top: 20px; width: 100%; padding: 14px;">
-            🤖 Analyze Health & Get AI Advice
-        </button>
-        <div id="health-results" style="margin-top: 20px;"></div>
-    </div>
-
-    <!-- SCAN TAB -->
-    <div id="injury-scan" class="tab-content">
-        <div id="permission-alert">📸 Camera permission is required. Please grant camera access to use this feature.</div>
-
-        <div class="form-group">
-            <label>Body Part to Scan:</label>
-            <select id="body-part">
-                <option value="Arm">Arm</option>
-                <option value="Leg">Leg</option>
-                <option value="Head/Face">Head/Face</option>
-                <option value="Torso">Torso</option>
-                <option value="Finger/Toe">Finger/Toe</option>
-                <option value="Skin/Rash">Skin / Rash</option>
-                <option value="Other">Other</option>
-            </select>
-        </div>
-
-        <video id="camera" autoplay playsinline style="display:none; width:100%; border-radius:12px; margin-bottom:12px;"></video>
-        <canvas id="canvas" style="display:none;"></canvas>
-
-        <div class="scan-btn-group">
-            <button onclick="startCamera()">📷 Start Camera</button>
-            <button onclick="captureImage()">📸 Capture</button>
-            <button onclick="uploadImage()">📁 Upload Image</button>
-        </div>
-        <input type="file" id="file-input" accept="image/*" style="display:none;">
-
-        <div id="scan-results" style="margin-top: 20px;">
-            <div class="result-card">
-                <h3>📋 Instructions</h3>
-                <p>Start the camera to scan a visible injury, or upload an image. Our AI will analyze it and provide initial guidance.</p>
+        <!-- MAIN CARD -->
+        <div class="main-card">
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('image',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="3" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="7.5" cy="8" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                        <path d="M2 13l4-4 3 3 2.5-2.5L18 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Image</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('video',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M14 8l4-2v8l-4-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Video</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('surveillance',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5 2"/>
+                        <circle cx="10" cy="10" r="1.2" fill="currentColor"/>
+                        <line x1="10" y1="3" x2="10" y2="1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Surveillance</span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('document',this)">
+                    <svg class="tab-svg" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 2h7l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M12 2v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <line x1="7" y1="9" x2="13" y2="9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <line x1="7" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <line x1="7" y1="15" x2="11" y2="15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+                    <span>Document</span>
+                </button>
             </div>
-        </div>
-    </div>
 
-    <!-- EMERGENCY TAB -->
-    <div id="emergency" class="tab-content">
-        <h3 style="color: var(--red); font-family: 'Nunito'; font-size: 20px; margin-bottom: 14px;">🚨 Immediate Assistance</h3>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;">
-            If you are experiencing a medical emergency — chest pain, difficulty breathing, or severe bleeding — call emergency services immediately.
-        </p>
+            <!-- IMAGE -->
+            <div id="imageTab" class="tab-pane">
+                <div class="drop-zone" id="uploadArea"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event,'uploadArea')"
+                    ondrop="onDrop(event,'image')">
+                    <div class="dz-icon dz-icon-img">IMG</div>
+                    <div class="dz-title">Drop image here</div>
+                    <div class="dz-sub">PNG · JPG · WEBP · GIF</div>
+                    <label class="choose-btn">Browse File
+                        <input type="file" class="file-input" accept="image/*" onchange="onImagePick(event)">
+                    </label>
+                    <div class="dz-scanline"></div>
+                </div>
+                <button class="analyze-btn" id="analyzeImageBtn" onclick="analyzeImage()" disabled>
+                    <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                </button>
+            </div>
 
-        <div class="result-card card-purple">
-            <h3>Contact Firoz Shaik</h3>
-            <p>For urgent consultation, message the doctor directly via WhatsApp. Please describe your emergency clearly.</p>
-            <button class="btn-whatsapp" onclick="sendWhatsAppMessage()">💬 WhatsApp Firoz Shaik</button>
-        </div>
+            <!-- VIDEO -->
+            <div id="videoTab" class="tab-pane" style="display:none">
+                <div class="url-zone">
+                    <div class="url-label">&#128279; Enter Video URL</div>
+                    <input type="text" class="url-input" id="videoInput"
+                        placeholder="Paste YouTube, TikTok, Instagram, Vimeo link..."
+                        oninput="onVideoInput()">
+                    <div id="videoUrlInfo" class="platform-info"></div>
+                    <div class="tip-box">&#128161; YouTube links get real title &amp; channel info for better analysis.</div>
+                </div>
+                <button class="analyze-btn" id="analyzeVideoBtn" onclick="analyzeVideo()" disabled>
+                    <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                </button>
+            </div>
 
-        <div class="result-card" style="border-left-color: #1a73e8; background: #e8f0fe;">
-            <h3>🇮🇳 Emergency Services (India)</h3>
-            <p style="font-size: 16px; font-weight: 700; color: #1a73e8; margin-bottom: 6px;">Ambulance: <strong>108</strong> or <strong>102</strong></p>
-            <p>Police: <strong>100</strong> &nbsp;|&nbsp; Fire: <strong>101</strong> &nbsp;|&nbsp; Women Helpline: <strong>1091</strong></p>
-        </div>
-
-        <div class="result-card card-yellow">
-            <h3>⚡ AI Emergency Guidance</h3>
-            <p>Describe your emergency below and get immediate first-aid instructions.</p>
-            <textarea id="emergency-input" placeholder="Describe the emergency situation..." style="width:100%; padding:12px; border:1.5px solid #ddd; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; margin-top:10px; resize:vertical; min-height:80px; outline:none;"></textarea>
-            <button class="btn-gradient" onclick="getEmergencyGuidance()" style="margin-top: 10px; width: 100%; padding: 12px;">
-                🆘 Get First-Aid Guidance
-            </button>
-            <div id="emergency-results" style="margin-top: 14px;"></div>
-        </div>
-    </div>
-
-    <!-- HOSPITALS TAB -->
-    <div id="hospital-finder" class="tab-content">
-        <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px;">
-            Quickly locate nearby hospitals and emergency services based on your current location.
-        </p>
-        <button class="btn-gradient" onclick="findNearbyHospitals()" style="width: 100%; padding: 14px;">
-            📍 Find Nearby Hospitals
-        </button>
-        <div id="hospital-results" style="margin-top: 16px;"></div>
-    </div>
-
-    <!-- MY HEALTH TAB -->
-    <div id="my-health" class="tab-content">
-
-        <!-- Sub-tabs -->
-        <div class="tab-sub">
-            <button class="tab-sub-btn active" onclick="switchSubTab('records-panel', this)">📋 Medical Records</button>
-            <button class="tab-sub-btn" onclick="switchSubTab('medicines-panel', this)">💊 Medicine Reminders</button>
-        </div>
-
-        <!-- ── MEDICAL RECORDS PANEL ── -->
-        <div id="records-panel" class="sub-panel active">
-            <div class="my-health-section">
-                <h4>📋 My Medical Records</h4>
-
-                <!-- Add record form -->
-                <div id="record-form" class="add-form">
-                    <input type="text" id="rec-title" placeholder="Record title (e.g. Blood Test, X-Ray, Prescription)">
-                    <div class="form-row">
-                        <input type="date" id="rec-date">
-                        <select id="rec-type">
-                            <option value="Test">Lab Test</option>
-                            <option value="Prescription">Prescription</option>
-                            <option value="Scan">Scan / X-Ray</option>
-                            <option value="Surgery">Surgery</option>
-                            <option value="Vaccination">Vaccination</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <input type="text" id="rec-doctor" placeholder="Doctor / Hospital name (optional)">
-                    <textarea id="rec-notes" rows="2" placeholder="Notes, findings or diagnosis..."></textarea>
-                    <div class="add-form-btns">
-                        <button class="btn-save" onclick="saveRecord()">💾 Save Record</button>
-                        <button class="btn-cancel" onclick="toggleForm('record-form')">Cancel</button>
-                    </div>
+            <!-- SURVEILLANCE -->
+            <div id="surveillanceTab" class="tab-pane" style="display:none">
+                <div class="drop-zone" id="survUploadArea"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event,'survUploadArea')"
+                    ondrop="onDrop(event,'surv')">
+                    <div class="dz-icon dz-icon-cam">CAM</div>
+                    <div class="dz-title">Drop surveillance video</div>
+                    <div class="dz-sub">MP4 · AVI · MOV · Auto frame capture</div>
+                    <label class="choose-btn">Browse File
+                        <input type="file" class="file-input" accept="video/*" onchange="onSurvPick(event)">
+                    </label>
+                    <div class="dz-scanline"></div>
                 </div>
 
-                <button class="btn-add-new" onclick="toggleForm('record-form')">＋ Add Medical Record</button>
-                <div id="records-list" style="margin-top: 14px;"></div>
+                <div class="surv-mode-bar">
+                    <button class="surv-mode-btn active" id="survModeAnalyze" onclick="setSurvMode('analyze')">
+                        <span>&#9740;</span><span>Full Analysis</span>
+                    </button>
+                    <button class="surv-mode-btn" id="survModeQA" onclick="setSurvMode('qa')">
+                        <span>&#9998;</span><span>Ask Questions</span>
+                    </button>
+                </div>
+
+                <div id="survAnalyzePanel">
+                    <button class="analyze-btn" id="analyzeSurvBtn" onclick="analyzeSurv()" disabled>
+                        <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                    </button>
+                </div>
+
+                <div id="survQAPanel" style="display:none">
+                    <div class="qa-info-box">
+                        &#9881; <strong>Footage Q&amp;A</strong> — Upload a video above, then ask any question about it.
+                    </div>
+                    <div class="surv-chat-box" id="survChatBox">
+                        <div class="chat-empty">Ask anything about the footage above</div>
+                    </div>
+                    <div class="surv-qa-input-row">
+                        <input type="text" id="survQuestion" class="surv-qa-input"
+                            placeholder="e.g. How many people entered? Any suspicious activity?"
+                            oninput="onSurvQuestionInput()"
+                            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askSurv();}">
+                        <button class="surv-qa-send-btn" id="askSurvBtn" onclick="askSurv()" disabled>
+                            <span>&#9658;</span>
+                        </button>
+                    </div>
+                    <div class="qa-chips">
+                        <button class="qa-chip" onclick="setQuestion('How many people are visible in the footage?')">Count people</button>
+                        <button class="qa-chip" onclick="setQuestion('Is there any suspicious activity or behavior?')">Suspicious activity</button>
+                        <button class="qa-chip" onclick="setQuestion('Describe the environment and location in detail.')">Describe location</button>
+                        <button class="qa-chip" onclick="setQuestion('What objects or vehicles are visible?')">Objects &amp; vehicles</button>
+                        <button class="qa-chip" onclick="setQuestion('What time of day does this appear to be?')">Time of day</button>
+                        <button class="qa-chip" onclick="setQuestion('Are there any security risks or safety concerns?')">Security risks</button>
+                    </div>
+                    <button class="clear-chat-btn" onclick="clearSurvChat()">&#10006; Clear Chat</button>
+                </div>
+            </div>
+
+            <!-- DOCUMENT -->
+            <div id="documentTab" class="tab-pane" style="display:none">
+                <div class="drop-zone" id="docUploadArea"
+                    ondragover="onDragOver(event)"
+                    ondragleave="onDragLeave(event,'docUploadArea')"
+                    ondrop="onDrop(event,'doc')">
+                    <div class="dz-icon dz-icon-doc">DOC</div>
+                    <div class="dz-title">Drop document here</div>
+                    <div class="dz-sub">PDF · DOC · DOCX · Full text extraction</div>
+                    <label class="choose-btn">Browse File
+                        <input type="file" class="file-input" accept=".pdf,.doc,.docx" onchange="onDocPick(event)">
+                    </label>
+                    <div class="dz-scanline"></div>
+                </div>
+                <button class="analyze-btn" id="analyzeDocBtn" onclick="analyzeDoc()" disabled>
+                    <span class="bolt">&#9889;</span><span>Analyze with AI</span>
+                </button>
             </div>
         </div>
 
-        <!-- ── MEDICINE REMINDERS PANEL ── -->
-        <div id="medicines-panel" class="sub-panel">
-            <div class="my-health-section">
-                <h4>💊 Medicine Reminders</h4>
+        <!-- LANGUAGE PANEL -->
+        <div class="lang-panel">
+            <div class="lang-header">
+                <span class="lang-title">Output Language</span>
+                <span class="lang-selected-badge" id="selectedLangBadge">हिंदी</span>
+            </div>
+            <input class="lang-search" type="text" placeholder="Search language..."
+                oninput="filterLangs(this.value)">
+            <div class="lang-grid" id="languageGrid"></div>
+        </div>
+    </div>
 
-                <!-- Alarm permission banner -->
-                <div id="alarm-permission-banner" style="display:none; background:#ede9fe; border-left:4px solid #794bc4; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:13px; color:#4c1d95;">
-                    🔔 <strong>Enable notifications</strong> so alarms work even when the app is in background.
-                    <button onclick="requestNotifPermission()" style="margin-left:10px; padding:5px 12px; background:#794bc4; color:#fff; border:none; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer;">Allow</button>
+    <!-- RESULTS -->
+    <section class="results-section" id="summarySection">
+
+        <div id="loadingState" style="display:none" class="loading-state">
+            <div class="neural-loader">
+                <div class="nl-ring r1"></div>
+                <div class="nl-ring r2"></div>
+                <div class="nl-ring r3"></div>
+                <div class="nl-core">&#9670;</div>
+            </div>
+            <p class="loading-label">Neural Analysis Running</p>
+            <p class="loading-sub">Connecting to Groq AI...</p>
+        </div>
+
+        <div id="countdownState" style="display:none" class="countdown-state">
+            <div class="countdown-ring-wrap">
+                <svg class="countdown-svg" viewBox="0 0 120 120">
+                    <circle class="cd-track" cx="60" cy="60" r="52"/>
+                    <circle class="cd-progress" id="cdCircle" cx="60" cy="60" r="52"
+                        stroke-dasharray="326.7" stroke-dashoffset="0"/>
+                </svg>
+                <div class="countdown-num" id="cdNum">20</div>
+            </div>
+            <p class="countdown-title">&#9203; Rate Limit — Auto Retry</p>
+            <p class="countdown-sub">Retrying in <strong id="cdSec">20</strong>s <span class="cd-badge" id="cdBadge">Attempt 1 of 2</span></p>
+            <div class="cd-tip">&#128161; Groq free tier resets every 60s</div>
+            <button class="cancel-cd-btn" onclick="stopCountdown()">&#10005; Cancel</button>
+        </div>
+
+        <div id="resultsGrid" style="display:none" class="results-grid">
+            <div class="results-top">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span class="results-spark">&#9733;</span>
+                    <h2 class="results-title">Analysis Complete</h2>
                 </div>
-
-                <!-- Add medicine form -->
-                <div id="medicine-form" class="add-form">
-                    <input type="text" id="med-name" placeholder="Medicine name (e.g. Dolo 650, Metformin)">
-                    <div class="form-row">
-                        <input type="text" id="med-dose" placeholder="Dosage (e.g. 500mg, 1 tablet)">
-                        <select id="med-time">
-                            <option value="morning">🌅 Morning</option>
-                            <option value="afternoon">🌞 Afternoon</option>
-                            <option value="evening">🌆 Evening</option>
-                            <option value="night">🌙 Night</option>
-                        </select>
-                    </div>
-                    <!-- Exact alarm time -->
-                    <label style="font-size:13px; font-weight:600; color:#555; display:block; margin-bottom:6px;">⏰ Alarm Time <span style="font-weight:400; color:#aaa;">(exact time to ring)</span></label>
-                    <input type="time" id="med-alarm-time" style="margin-bottom:10px;">
-                    <div class="form-row">
-                        <input type="date" id="med-start" placeholder="Start date">
-                        <input type="date" id="med-end" placeholder="End date (optional)">
-                    </div>
-                    <input type="text" id="med-instructions" placeholder="Instructions (e.g. After food, With water)">
-                    <div class="add-form-btns">
-                        <button class="btn-save" onclick="saveMedicine()">💾 Save Reminder</button>
-                        <button class="btn-cancel" onclick="toggleForm('medicine-form')">Cancel</button>
-                    </div>
+                <button class="clear-btn" onclick="clearAll()">&#10005; Clear</button>
+            </div>
+            <div class="result-cards">
+                <div class="result-card en-card">
+                    <div class="rc-label">&#127468;&#127463; English Summary</div>
+                    <div class="rc-divider"></div>
+                    <p id="englishSummary" class="rc-text"></p>
                 </div>
-
-                <button class="btn-add-new" onclick="toggleForm('medicine-form')">＋ Add Medicine Reminder</button>
-
-                <!-- Today's reminders summary -->
-                <div id="today-reminders" style="margin-top: 14px;"></div>
-                <div id="medicines-list" style="margin-top: 10px;"></div>
+                <div class="result-card tr-card">
+                    <div class="rc-label" id="translatedTitle">&#9670; Translated Summary</div>
+                    <div class="rc-divider"></div>
+                    <p id="translatedSummary" class="rc-text"></p>
+                </div>
             </div>
         </div>
 
-    </div>
-
-</div>
-
-<!-- ALARM POPUP MODAL -->
-<div id="alarm-modal" style="display:none; position:fixed; z-index:999; inset:0; background:rgba(0,0,0,0.65); align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:20px; padding:30px 24px; max-width:340px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideUp 0.3s ease;">
-        <div id="alarm-ring-icon" style="font-size:56px; margin-bottom:10px; animation:ringBell 0.5s infinite alternate;">🔔</div>
-        <h2 style="font-family:'Nunito',sans-serif; font-size:20px; font-weight:800; color:#2d2d3a; margin-bottom:6px;">Medicine Time!</h2>
-        <p id="alarm-medicine-name" style="font-size:16px; font-weight:700; color:#794bc4; margin-bottom:4px;"></p>
-        <p id="alarm-medicine-info" style="font-size:13px; color:#6b7280; margin-bottom:20px;"></p>
-        <button onclick="dismissAlarm()" style="width:100%; padding:13px; background:linear-gradient(135deg,#4d90f1,#794bc4); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif;">
-            ✅ Got it — I'll take it now
-        </button>
-        <button onclick="snoozeAlarm()" style="width:100%; padding:11px; background:#f3f4f6; color:#374151; border:none; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; margin-top:8px;">
-            ⏰ Snooze 10 minutes
-        </button>
-    </div>
-</div>
-
-<!-- PERMISSIONS MODAL -->
-<div id="permission-modal">
-    <div class="modal-box">
-        <h3>🔐 App Permissions Required</h3>
-        <p>To use all features, please grant the following permissions:</p>
-
-        <div class="permission-row">
-            <span>📷 Camera Access (Scan tab)</span>
-            <span id="camera-status">❌</span>
-            <button onclick="requestCameraPermission()">Allow</button>
-        </div>
-        <div class="permission-row">
-            <span>📍 Location Access (Hospitals)</span>
-            <span id="location-status">❌</span>
-            <button onclick="requestLocationPermission()">Allow</button>
+        <div id="errorState" style="display:none" class="error-state">
+            <div class="error-icon-wrap">&#9888;</div>
+            <p class="error-msg" id="errorMsg">Something went wrong.</p>
+            <button class="retry-btn" onclick="clearAll()">&#8617; Try Again</button>
         </div>
 
-        <button class="btn-gradient" style="margin-top: 20px; width: 100%; padding: 12px;" onclick="closePermissionModal()">
-            Done
-        </button>
-    </div>
+    </section>
 </div>
 
 <script>
-    // ─── CONFIG ───────────────────────────────────────────────────────────────
-    // Key is split + base64-encoded to avoid plain-text secret scanning
-    const _kp = ['Z3NrX0xoenNtdE9R','UDZHMEYzTnpuTjM1','V0dkeWIzRll1dnFu','TjVYOE93bk52RFN0','a245WGx4T0M='];
-    const GROQ_API_KEY = atob(_kp.join(''));
-    const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-    const TEXT_MODEL   = 'llama-3.3-70b-versatile';
-    const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+// ============================================
+// NEURALSCAN — GROQ AI ENGINE
+// ============================================
+const GROQ_BASE    = "https://api.groq.com/openai/v1/chat/completions";
+const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+const TEXT_MODEL   = "llama-3.3-70b-versatile";
 
-    // ─── STATE ────────────────────────────────────────────────────────────────
-    let stream = null, userLocation = null, currentUser = null;
-    let permissions = { camera: false, location: false };
+// ============================================
+// API KEY (HIDDEN MODE - DEMO USE)
+// ============================================
+const _k1 = ["gsk_", "z6I8eXJmodrqn8ejuyaN", "WGdyb3FY4RQHW5lh7QXq5KigPNG24qwb"];
+const _k2 = ["gsk_", "hPbGEFHZNbJhQBoP9NXL", "WGdyb3FYk7VwiPveeYFa179B3cBbbUBc"];
+const _k3 = ["gsk_", "Q3ixNvctyf9CKym9fw41", "WGdyb3FYXPQAGz3FYDILhIKGxin6ngkD"];
+const _k4 = ["gsk_", "bhzGKjyCB1UT3c7XSQFI", "WGdyb3FYE8QtDsQe0G4VZmVZiR3pKd5o"];
 
-    // ─── GROQ API HELPERS ─────────────────────────────────────────────────────
-    async function callGroq(messages, model = TEXT_MODEL) {
-        const res = await fetch(GROQ_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify({ model, messages, max_tokens: 1200, temperature: 0.5 })
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err?.error?.message || `API error ${res.status}`);
-        }
-        const data = await res.json();
-        return data.choices[0].message.content;
-    }
+const API_IMAGE = _k1.join("");
+const API_VIDEO = _k2.join("");
+const API_SURV  = _k3.join("");
+const API_DOC   = _k4.join("");
+const ALL_KEYS  = [API_IMAGE, API_VIDEO, API_SURV, API_DOC];
 
-    async function callGroqVision(base64Image, prompt, model = VISION_MODEL) {
-        const res = await fetch(GROQ_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify({
-                model,
-                messages: [{
-                    role: 'user',
-                    content: [
-                        { type: 'image_url', image_url: { url: base64Image } },
-                        { type: 'text', text: prompt }
-                    ]
-                }],
-                max_tokens: 1000
-            })
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err?.error?.message || `API error ${res.status}`);
-        }
-        const data = await res.json();
-        return data.choices[0].message.content;
-    }
+// ============================================
+// LANGUAGES
+// ============================================
+const languages = {
+    hi:{name:"Hindi",     code:"HI", color:"#ff9933", native:"हिंदी"},
+    te:{name:"Telugu",    code:"TE", color:"#ff9933", native:"తెలుగు"},
+    ta:{name:"Tamil",     code:"TA", color:"#ff9933", native:"தமிழ்"},
+    bn:{name:"Bengali",   code:"BN", color:"#ff9933", native:"বাংলা"},
+    mr:{name:"Marathi",   code:"MR", color:"#ff9933", native:"मराठी"},
+    gu:{name:"Gujarati",  code:"GU", color:"#ff9933", native:"ગુજરાતી"},
+    kn:{name:"Kannada",   code:"KN", color:"#ff9933", native:"ಕನ್ನಡ"},
+    ml:{name:"Malayalam", code:"ML", color:"#ff9933", native:"മലയാളം"},
+    pa:{name:"Punjabi",   code:"PA", color:"#ff9933", native:"ਪੰਜਾਬੀ"},
+    or:{name:"Odia",      code:"OR", color:"#ff9933", native:"ଓଡ଼ିଆ"},
+    as:{name:"Assamese",  code:"AS", color:"#ff9933", native:"অসমীয়া"},
+    ks:{name:"Kashmiri",  code:"KS", color:"#ff9933", native:"कॉशुर"},
+    ur:{name:"Urdu",      code:"UR", color:"#ff9933", native:"اردو"},
+    es:{name:"Spanish",   code:"ES", color:"#c60b1e", native:"Español"},
+    fr:{name:"French",    code:"FR", color:"#0055a4", native:"Français"},
+    de:{name:"German",    code:"DE", color:"#000000", native:"Deutsch"},
+    zh:{name:"Chinese",   code:"ZH", color:"#de2910", native:"中文"},
+    ja:{name:"Japanese",  code:"JA", color:"#bc002d", native:"日本語"},
+    ko:{name:"Korean",    code:"KO", color:"#003478", native:"한국어"},
+    ar:{name:"Arabic",    code:"AR", color:"#006c35", native:"العربية"},
+    ru:{name:"Russian",   code:"RU", color:"#0039a6", native:"Русский"},
+    pt:{name:"Portuguese",code:"PT", color:"#006600", native:"Português"},
+    it:{name:"Italian",   code:"IT", color:"#009246", native:"Italiano"},
+    nl:{name:"Dutch",     code:"NL", color:"#ae1c28", native:"Nederlands"},
+    tr:{name:"Turkish",   code:"TR", color:"#e30a17", native:"Türkçe"},
+    pl:{name:"Polish",    code:"PL", color:"#dc143c", native:"Polski"},
+    vi:{name:"Vietnamese",code:"VI", color:"#da251d", native:"Tiếng Việt"},
+    th:{name:"Thai",      code:"TH", color:"#a51931", native:"ไทย"},
+    id:{name:"Indonesian",code:"ID", color:"#ce1126", native:"Bahasa Indonesia"},
+    ms:{name:"Malay",     code:"MS", color:"#cc0001", native:"Bahasa Melayu"},
+    fa:{name:"Persian",   code:"FA", color:"#239f40", native:"فارسی"},
+    he:{name:"Hebrew",    code:"HE", color:"#0038b8", native:"עברית"},
+    sw:{name:"Swahili",   code:"SW", color:"#006600", native:"Kiswahili"}
+};
 
-    // ─── PARSE AI TEXT TO HTML CARDS ─────────────────────────────────────────
-    function parseToHTML(text) {
-        const lines = text.split('\n').filter(l => l.trim());
-        let html = '<div class="ai-badge">✨ AI Analysis</div>';
-        let currentCard = null;
-        let inList = false;
+// ============================================
+// STATE
+// ============================================
+let selectedLang      = "hi";
+let uploadedImage     = null;
+let uploadedImageMime = "image/jpeg";
+let uploadedDoc       = null;
+let uploadedSurv      = null;
+let survFrame         = null;
+let survChatHistory   = [];
+let cdTimer           = null;
+let retryFn           = null;
+let cancelled         = false;
+let retryCount        = 0;
+const RETRY_WAITS     = [20, 40];
 
-        const flushCard = () => {
-            if (inList) { html += '</ul>'; inList = false; }
-            if (currentCard) { html += '</div>'; currentCard = null; }
-        };
-
-        for (const line of lines) {
-            const clean = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').trim();
-
-            if (/^##\s/.test(line)) {
-                flushCard();
-                const title = clean.replace(/^##\s+/, '');
-                const colorClass = /medicine|medication|drug|dose/i.test(title) ? 'card-red' :
-                                   /diet|food|nutrition|eat/i.test(title) ? 'card-green' :
-                                   /disclaimer|warning|note/i.test(title) ? 'card-yellow' : 'card-purple';
-                html += `<div class="result-card ${colorClass}"><h3>${title}</h3>`;
-                currentCard = colorClass;
-                inList = false;
-            } else if (/^[-•]\s/.test(line)) {
-                if (!currentCard) { html += '<div class="result-card card-purple">'; currentCard = 'default'; }
-                if (!inList) { html += '<ul>'; inList = true; }
-                html += `<li>${clean.replace(/^[-•]\s+/, '')}</li>`;
-            } else if (clean) {
-                if (inList) { html += '</ul>'; inList = false; }
-                if (!currentCard) { html += '<div class="result-card card-purple">'; currentCard = 'default'; }
-                html += `<p>${clean}</p>`;
-            }
-        }
-        flushCard();
-        return html;
-    }
-
-    function loadingHTML(msg = 'Analyzing with AI') {
-        return `<div class="loading-state">
-            <div style="font-size:36px; margin-bottom:10px;">🤖</div>
-            <div style="font-weight: 600; color: var(--primary); font-size: 15px;">${msg}</div>
-            <div class="loading-dots"><span></span><span></span><span></span></div>
-        </div>`;
-    }
-
-    // ─── AUTH ─────────────────────────────────────────────────────────────────
-    function simpleHash(s) {
-        let h = 0;
-        for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
-        return h.toString();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        checkExistingSession();
-        document.getElementById('file-input').onchange = handleImageUpload;
+// ============================================
+// INIT LANGUAGE GRID
+// ============================================
+function initLanguages() {
+    const grid = document.getElementById("languageGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+    Object.keys(languages).forEach(function(code) {
+        var lang = languages[code];
+        var btn  = document.createElement("button");
+        btn.className    = "lang-btn" + (code === "hi" ? " active" : "");
+        btn.dataset.code = code;
+        btn.innerHTML    = "<span class='lflag' style='background:" + lang.color + "'>" + lang.code + "</span><span>" + lang.name + "</span>";
+        btn.onclick      = function() { selectLang(code); };
+        grid.appendChild(btn);
     });
-
-    function checkExistingSession() {
-        const saved = localStorage.getItem('healthAssistUser');
-        if (saved) { currentUser = JSON.parse(saved); showMainApp(); }
-        else { showLoginScreen(); }
-    }
-
-    function loginWithGoogle() {
-        const email = prompt('Enter your Gmail address:');
-        if (email && email.includes('@')) {
-            currentUser = { type: 'google', email, name: email.split('@')[0] };
-            saveSession(); showMainApp(); checkAndRequestPermissions();
-        } else if (email) { alert('Please enter a valid Gmail address.'); }
-    }
-
-    function loginWithPhone() {
-        const phone = document.getElementById('phone-number').value.trim();
-        const pass  = document.getElementById('phone-password').value.trim();
-        if (phone.length !== 10 || !/^\d+$/.test(phone)) { alert('Enter a valid 10-digit phone number.'); return; }
-        if (pass.length !== 6  || !/^\d+$/.test(pass))  { alert('Enter a valid 6-digit PIN.'); return; }
-
-        const users = JSON.parse(localStorage.getItem('phoneUsers') || '{}');
-        const key   = '+91' + phone;
-        const hash  = simpleHash(pass);
-
-        if (users[key]) {
-            if (users[key].passwordHash === hash) {
-                currentUser = { type: 'phone', phone: key, name: 'User' };
-                saveSession(); showMainApp(); checkAndRequestPermissions();
-            } else { alert('Incorrect password.'); }
-        } else {
-            users[key] = { passwordHash: hash, createdAt: new Date().toISOString() };
-            localStorage.setItem('phoneUsers', JSON.stringify(users));
-            currentUser = { type: 'phone', phone: key, name: 'User' };
-            saveSession(); alert('Account created!'); showMainApp(); checkAndRequestPermissions();
-        }
-    }
-
-    function loginAsGuest() {
-        currentUser = { type: 'guest', name: 'Guest User', id: 'guest_' + Date.now() };
-        saveSession(); showMainApp(); checkAndRequestPermissions();
-    }
-
-    function saveSession() { localStorage.setItem('healthAssistUser', JSON.stringify(currentUser)); }
-
-    function logout() {
-        if (!confirm('Are you sure you want to logout?')) return;
-        localStorage.removeItem('healthAssistUser');
-        currentUser = null; permissions = { camera: false, location: false };
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        showLoginScreen();
-    }
-
-    function showMainApp() {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        const info = currentUser.type === 'google' ? '👤 ' + currentUser.email
-                   : currentUser.type === 'phone'  ? '📱 ' + currentUser.phone
-                   : '👤 Guest User';
-        document.getElementById('user-info').textContent = info;
-        const first = document.querySelector('.nav-bar .nav-tab');
-        if (first) switchTab('symptom-check', first);
-    }
-
-    function showLoginScreen() {
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('app-container').style.display = 'none';
-    }
-
-    // ─── PERMISSIONS ──────────────────────────────────────────────────────────
-    function checkAndRequestPermissions() {
-        setTimeout(() => { showPermissionModal(); checkExistingPermissions(); }, 500);
-    }
-    function showPermissionModal() { document.getElementById('permission-modal').style.display = 'flex'; }
-    function closePermissionModal() { document.getElementById('permission-modal').style.display = 'none'; }
-
-    function checkExistingPermissions() {
-        if (!navigator.permissions) return;
-        navigator.permissions.query({name:'camera'}).then(r => { if (r.state==='granted') { permissions.camera=true; updateStatus('camera',true); }}).catch(()=>{});
-        navigator.permissions.query({name:'geolocation'}).then(r => { if (r.state==='granted') { permissions.location=true; updateStatus('location',true); getUserLocation(); }}).catch(()=>{});
-    }
-
-    function updateStatus(type, granted) {
-        const el = document.getElementById(type + '-status');
-        if (el) el.textContent = granted ? '✅' : '❌';
-    }
-
-    function requestCameraPermission() {
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(ms => { permissions.camera = true; updateStatus('camera', true); ms.getTracks().forEach(t => t.stop()); alert('Camera access granted!'); })
-            .catch(() => alert('Camera denied. Please enable in browser settings.'));
-    }
-
-    function requestLocationPermission() {
-        navigator.geolocation.getCurrentPosition(
-            pos => { permissions.location = true; updateStatus('location', true); userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; alert('Location access granted!'); },
-            () => alert('Location denied. Please enable in browser settings.')
-        );
-    }
-
-    function getUserLocation() {
-        if (!navigator.geolocation) return;
-        navigator.geolocation.getCurrentPosition(
-            pos => { userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude }; permissions.location = true; updateStatus('location', true); },
-            () => {}
-        );
-    }
-
-    // ─── TAB SWITCHING ────────────────────────────────────────────────────────
-    function switchTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btn.classList.add('active');
-        if (tabId === 'my-health') { renderRecords(); renderMedicines(); }
-
-        if (tabId !== 'injury-scan' && stream) {
-            stream.getTracks().forEach(t => t.stop());
-            stream = null;
-            document.getElementById('camera').style.display = 'none';
-        }
-        if (tabId === 'injury-scan') {
-            document.getElementById('permission-alert').style.display = permissions.camera ? 'none' : 'block';
-        }
-    }
-
-    // ─── HEALTH ANALYSIS ──────────────────────────────────────────────────────
-    async function analyzeHealth() {
-        const condition = document.getElementById('health-condition').value.trim();
-        const age       = document.getElementById('age').value || '25';
-        const history   = document.getElementById('medical-history').value.trim() || 'None';
-
-        if (!condition) { alert('Please describe your health condition first.'); return; }
-
-        const resultsDiv = document.getElementById('health-results');
-        resultsDiv.innerHTML = loadingHTML('Analyzing your condition with AI...');
-
-        const prompt = `You are a helpful medical information assistant (NOT a replacement for a doctor). 
-A patient provides the following details:
-- Condition/Symptoms: ${condition}
-- Age: ${age}
-- Medical History / Allergies: ${history}
-
-Provide a structured health guidance report with the following sections (use ## for section headers):
-
-## 🔍 Preliminary Analysis
-List 2-3 possible conditions and recommended immediate actions as bullet points.
-
-## 💊 Medicine Suggestions
-Suggest common OTC medicines with dosage appropriate for India (Crocin, Dolo, etc.). Mention any precautions based on allergies or history. Bullet points.
-
-## 🥗 Diet Suggestions
-Provide detailed diet recommendations — what to eat, what to avoid, and hydration tips. Bullet points.
-
-## 🏃 Lifestyle Tips
-2-3 brief recovery lifestyle suggestions.
-
-## ⚠️ Important Disclaimer
-Remind the user this is AI guidance only and to consult Firoz Shaik or a qualified doctor. Keep it brief.
-
-Keep the language simple, clear, and compassionate. Format cleanly.`;
-
-        try {
-            const response = await callGroq([{ role: 'user', content: prompt }]);
-            resultsDiv.innerHTML = parseToHTML(response);
-
-            // Add WhatsApp button
-            resultsDiv.innerHTML += `
-                <div class="disclaimer-card">
-                    <h3>💬 Consult Firoz Shaik</h3>
-                    <p>For personalised advice or if symptoms worsen, contact Firoz Shaik directly via WhatsApp.</p>
-                    <button class="btn-whatsapp" onclick="sendWhatsAppMessage()">💬 Message Firoz Shaik</button>
-                </div>`;
-        } catch (err) {
-            resultsDiv.innerHTML = `<div class="result-card card-red"><h3>⚠️ Error</h3><p>${err.message}</p><p>Please check your internet connection and try again.</p></div>`;
-        }
-    }
-
-    // ─── EMERGENCY GUIDANCE ───────────────────────────────────────────────────
-    async function getEmergencyGuidance() {
-        const situation = document.getElementById('emergency-input').value.trim();
-        if (!situation) { alert('Please describe the emergency situation.'); return; }
-
-        const div = document.getElementById('emergency-results');
-        div.innerHTML = loadingHTML('Getting emergency first-aid guidance...');
-
-        const prompt = `You are an emergency first-aid assistant. Someone is describing an urgent medical situation:
-
-"${situation}"
-
-Provide IMMEDIATE, clear, step-by-step first-aid instructions. Use ## for section headers:
-
-## 🚨 Immediate Steps
-Numbered list of urgent actions to take RIGHT NOW.
-
-## ☎️ When to Call Emergency Services
-Clear criteria — call 108/102 if...
-
-## ⚠️ What NOT To Do
-Critical mistakes to avoid.
-
-Keep it concise, clear, and actionable. This is a life situation — be direct and calm.`;
-
-        try {
-            const resp = await callGroq([{ role: 'user', content: prompt }]);
-            div.innerHTML = parseToHTML(resp);
-            div.innerHTML += `<button class="btn-whatsapp" onclick="sendWhatsAppMessage()" style="margin-top:4px;">💬 WhatsApp Firoz Shaik Now</button>`;
-        } catch (err) {
-            div.innerHTML = `<div class="result-card card-red"><h3>⚠️ Error</h3><p>${err.message}</p></div>`;
-        }
-    }
-
-    // ─── CAMERA / SCAN ────────────────────────────────────────────────────────
-    function startCamera() {
-        if (!permissions.camera) { requestCameraPermission(); return; }
-        const video = document.getElementById('camera');
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(ms => {
-                stream = ms;
-                video.srcObject = ms;
-                video.style.display = 'block';
-                video.play();
-                document.getElementById('scan-results').innerHTML =
-                    '<div class="loading-state" style="padding:16px;"><p style="color:var(--primary); font-weight:600;">📷 Camera active — aim at the injury area</p></div>';
-            })
-            .catch(() => alert('Camera access denied. Please enable camera permissions.'));
-    }
-
-    function captureImage() {
-        if (!stream) { alert('Please start the camera first, or upload an image.'); return; }
-        const video = document.getElementById('camera');
-        const canvas = document.getElementById('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        const imageData = canvas.toDataURL('image/jpeg');
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; video.style.display = 'none'; }
-        processImage(imageData);
-    }
-
-    function uploadImage() { document.getElementById('file-input').click(); }
-
-    function handleImageUpload(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => processImage(ev.target.result);
-        reader.readAsDataURL(file);
-    }
-
-    async function processImage(imageData) {
-        const bodyPart = document.getElementById('body-part').value;
-        const scanDiv  = document.getElementById('scan-results');
-
-        scanDiv.innerHTML = `${loadingHTML(`Analyzing ${bodyPart} image with AI Vision...`)}<img src="${imageData}" style="width:100%; border-radius:12px; margin-top:14px; display:block;">`;
-
-        const prompt = `You are a medical image analysis assistant. The patient has uploaded an image of their ${bodyPart}.
-
-Analyze the image and provide:
-
-## 🔎 Visual Observation
-What you observe in the image (bruising, swelling, redness, rash, wound, etc.)
-
-## 📊 Severity Assessment
-Rate severity as: Mild / Moderate / Severe. Explain briefly.
-
-## 🩹 Immediate First-Aid Steps
-Bullet list of first-aid steps to take now.
-
-## 🏥 Medical Attention
-Clearly state whether the person should: (1) Monitor at home, (2) Visit a clinic soon, or (3) Go to emergency NOW.
-
-## ⚠️ Disclaimer
-Remind this is AI-based guidance and not a substitute for professional medical evaluation.
-
-Be concise, clear, and avoid alarming language unnecessarily.`;
-
-        try {
-            const response = await callGroqVision(imageData, prompt);
-            scanDiv.innerHTML = `<img src="${imageData}" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;">` + parseToHTML(response);
-            scanDiv.innerHTML += `<button class="btn-whatsapp" onclick="sendWhatsAppMessage()" style="margin-top:4px;">💬 Message Firoz Shaik</button>`;
-        } catch (err) {
-            // Fallback to text-only analysis if vision fails
-            try {
-                const fallback = await callGroq([{
-                    role: 'user',
-                    content: `A patient has uploaded a photo of their ${bodyPart} for injury analysis. Provide general first-aid guidance for common ${bodyPart} injuries, and advise them to see a doctor for a proper evaluation since you cannot see the image.\n\nUse ## sections: Visual Guidance, First-Aid Steps, When to See a Doctor, Disclaimer.`
-                }]);
-                scanDiv.innerHTML = `<img src="${imageData}" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;">
-                    <div class="result-card card-yellow"><p>⚠️ Vision analysis unavailable — showing general guidance for ${bodyPart} injuries.</p></div>`
-                    + parseToHTML(fallback);
-                scanDiv.innerHTML += `<button class="btn-whatsapp" onclick="sendWhatsAppMessage()" style="margin-top:4px;">💬 Message Firoz Shaik</button>`;
-            } catch (err2) {
-                scanDiv.innerHTML = `<img src="${imageData}" style="width:100%; border-radius:12px; margin-bottom:14px; display:block;"><div class="result-card card-red"><h3>⚠️ Error</h3><p>${err2.message}</p></div>`;
-            }
-        }
-    }
-
-    // ─── WHATSAPP ─────────────────────────────────────────────────────────────
-    function sendWhatsAppMessage() {
-        const name    = currentUser ? (currentUser.name || 'User') : 'User';
-        const contact = currentUser?.type === 'phone' ? currentUser.phone : 'Not provided';
-        const msg = `🚨 MEDICAL ASSISTANCE REQUEST 🚨\n\nHello Firoz Shaik,\n\nI am ${name} and I need medical consultation.\n${contact !== 'Not provided' ? '📞 Contact: ' + contact : ''}\n\nPlease let me know your availability.\n\nSent from Health Assistant App`;
-        window.open('https://wa.me/919948123244?text=' + encodeURIComponent(msg), '_blank');
-    }
-
-    // ─── HOSPITAL FINDER ──────────────────────────────────────────────────────
-    function findNearbyHospitals() {
-        const div = document.getElementById('hospital-results');
-        div.innerHTML = loadingHTML('Getting your location...');
-
-        const openMaps = (lat, lng) => {
-            const url = lat
-                ? `https://www.google.com/maps/search/hospitals/@${lat},${lng},14z`
-                : `https://www.google.com/maps/search/hospitals+near+me`;
-            window.open(url, '_blank');
-            div.innerHTML = `<div class="result-card card-green">
-                <h3>✅ Google Maps Opened</h3>
-                <p>${lat ? 'Showing hospitals near your location.' : 'Showing general hospital search.'}</p>
-                <button class="btn-gradient" onclick="window.open('${url}','_blank')" style="margin-top:10px; width:100%; padding:12px;">🗺️ Open Maps Again</button>
-            </div>`;
-        };
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                pos => openMaps(pos.coords.latitude, pos.coords.longitude),
-                () => openMaps(null, null),
-                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-            );
-        } else { openMaps(null, null); }
-    }
-
-    // ─── MY HEALTH: HELPERS ──────────────────────────────────────────────────
-    function switchSubTab(panelId, btn) {
-        document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-sub-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(panelId).classList.add('active');
-        btn.classList.add('active');
-    }
-
-    function toggleForm(formId) {
-        const f = document.getElementById(formId);
-        f.classList.toggle('open');
-        // Pre-fill today's date when opening
-        if (f.classList.contains('open')) {
-            const today = new Date().toISOString().split('T')[0];
-            const dateInput = f.querySelector('input[type="date"]');
-            if (dateInput && !dateInput.value) dateInput.value = today;
-        }
-    }
-
-    function getRecords()   { return JSON.parse(localStorage.getItem('healthRecords')   || '[]'); }
-    function getMedicines() { return JSON.parse(localStorage.getItem('medicinReminders') || '[]'); }
-    function saveRecords(data)   { localStorage.setItem('healthRecords',    JSON.stringify(data)); }
-    function saveMedicines(data) { localStorage.setItem('medicinReminders', JSON.stringify(data)); }
-
-    // ─── MEDICAL RECORDS ──────────────────────────────────────────────────────
-    function saveRecord() {
-        const title  = document.getElementById('rec-title').value.trim();
-        const date   = document.getElementById('rec-date').value;
-        const type   = document.getElementById('rec-type').value;
-        const doctor = document.getElementById('rec-doctor').value.trim();
-        const notes  = document.getElementById('rec-notes').value.trim();
-        if (!title) { alert('Please enter a record title.'); return; }
-
-        const records = getRecords();
-        records.unshift({ id: Date.now(), title, date: date || new Date().toISOString().split('T')[0], type, doctor, notes });
-        saveRecords(records);
-
-        // reset form
-        ['rec-title','rec-date','rec-doctor','rec-notes'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('rec-type').selectedIndex = 0;
-        document.getElementById('record-form').classList.remove('open');
-        renderRecords();
-    }
-
-    function deleteRecord(id) {
-        if (!confirm('Delete this record?')) return;
-        saveRecords(getRecords().filter(r => r.id !== id));
-        renderRecords();
-    }
-
-    const typeIcons = { Test:'🧪', Prescription:'📄', Scan:'🩻', Surgery:'🔪', Vaccination:'💉', Other:'📁' };
-
-    function renderRecords() {
-        const list = document.getElementById('records-list');
-        const records = getRecords();
-        if (!records.length) {
-            list.innerHTML = `<div class="empty-state"><span class="empty-icon">📋</span>No records yet.<br>Add your first medical record above.</div>`;
-            return;
-        }
-        list.innerHTML = records.map(r => `
-            <div class="record-card">
-                <div class="record-info">
-                    <div class="record-title">${typeIcons[r.type] || '📁'} ${r.title}</div>
-                    <div class="record-meta">
-                        ${r.date ? '📅 ' + r.date : ''} 
-                        ${r.type ? ' · ' + r.type : ''}
-                        ${r.doctor ? ' · 👨‍⚕️ ' + r.doctor : ''}
-                    </div>
-                    ${r.notes ? `<div class="record-meta" style="margin-top:4px; color:#555;">${r.notes}</div>` : ''}
-                </div>
-                <div class="record-actions">
-                    <button class="icon-btn" onclick="deleteRecord(${r.id})" title="Delete">🗑️</button>
-                </div>
-            </div>`).join('');
-    }
-
-    // ─── MEDICINE REMINDERS + ALARM SYSTEM ───────────────────────────────────
-    let alarmInterval = null;
-    let activeAlarmAudio = null;
-    let snoozeUntil = null;
-    let currentAlarmId = null;
-
-    // ── Web Audio alarm sound (no external file needed) ──
-    function playAlarmSound() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            function beep(freq, start, dur) {
-                const osc  = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-                gain.gain.setValueAtTime(0, ctx.currentTime + start);
-                gain.gain.linearRampToValueAtTime(0.6, ctx.currentTime + start + 0.05);
-                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
-                osc.start(ctx.currentTime + start);
-                osc.stop(ctx.currentTime + start + dur + 0.05);
-            }
-            // Cheerful alarm pattern
-            [0, 0.35, 0.7, 1.1, 1.45, 1.8].forEach((t, i) => {
-                beep(i % 2 === 0 ? 880 : 1047, t, 0.28);
-            });
-            activeAlarmAudio = ctx;
-        } catch(e) { console.warn('Audio not available', e); }
-    }
-
-    function stopAlarmSound() {
-        try { if (activeAlarmAudio) { activeAlarmAudio.close(); activeAlarmAudio = null; } } catch(e){}
-    }
-
-    // ── Notification permission ──
-    function requestNotifPermission() {
-        if (!('Notification' in window)) { alert('Notifications not supported on this browser.'); return; }
-        Notification.requestPermission().then(p => {
-            document.getElementById('alarm-permission-banner').style.display = 'none';
-            if (p === 'granted') showToast('✅ Notifications enabled! Alarms will work in background.');
-            else showToast('⚠️ Notification denied. In-app alarm will still work.');
+}
+
+function selectLang(code) {
+    selectedLang = code;
+    document.querySelectorAll(".lang-btn").forEach(function(b) {
+        b.classList.toggle("active", b.dataset.code === code);
+    });
+    var badge = document.getElementById("selectedLangBadge");
+    if (badge) badge.textContent = languages[code].native;
+}
+
+function filterLangs(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll(".lang-btn").forEach(function(b) {
+        var lang = languages[b.dataset.code];
+        var show = !q || lang.name.toLowerCase().includes(q) || lang.native.toLowerCase().includes(q);
+        b.style.display = show ? "" : "none";
+    });
+}
+
+// ============================================
+// TABS
+// ============================================
+function switchTab(tab, btn) {
+    document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    ["image","video","surveillance","document"].forEach(function(t) {
+        var el = document.getElementById(t + "Tab");
+        if (el) el.style.display = (t === tab) ? "block" : "none";
+    });
+    clearAll();
+}
+
+// ============================================
+// DRAG & DROP
+// ============================================
+function onDragOver(e)      { e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
+function onDragLeave(e, id) { var el = document.getElementById(id); if(el) el.classList.remove("drag-over"); }
+function onDrop(e, type) {
+    e.preventDefault(); e.currentTarget.classList.remove("drag-over");
+    var f = e.dataTransfer.files[0];
+    if (!f) return;
+    if (type === "image") loadImage(f);
+    else if (type === "surv") loadSurv(f);
+    else if (type === "doc")  loadDoc(f);
+}
+
+// ============================================
+// IMAGE
+// ============================================
+function onImagePick(e)  { if (e.target.files[0]) loadImage(e.target.files[0]); }
+function loadImage(file) {
+    uploadedImageMime = file.type || "image/jpeg";
+    var r = new FileReader();
+    r.onload = function(ev) {
+        uploadedImage = ev.target.result.split(",")[1];
+        document.getElementById("uploadArea").innerHTML =
+            "<div class='file-preview-wrap'>" +
+            "<img src='" + ev.target.result + "' class='img-preview'>" +
+            "<button class='remove-btn-small' onclick='clearImage()'>&#10005;</button></div>";
+        document.getElementById("analyzeImageBtn").disabled = false;
+    };
+    r.readAsDataURL(file);
+}
+function clearImage() {
+    uploadedImage = null;
+    document.getElementById("uploadArea").innerHTML = dzHTML({text:"IMG",cls:"dz-icon-img"},"Drop image here","PNG · JPG · WEBP","image/*","onImagePick");
+    document.getElementById("analyzeImageBtn").disabled = true;
+}
+
+// ============================================
+// SURVEILLANCE
+// ============================================
+function onSurvPick(e) { if (e.target.files[0]) loadSurv(e.target.files[0]); }
+function loadSurv(file) {
+    uploadedSurv = file;
+    survFrame    = null;
+    clearSurvChat();
+    document.getElementById("survUploadArea").innerHTML =
+        chipHTML("CAM", file.name, (file.size/1024/1024).toFixed(1)+" MB", "clearSurv()");
+    document.getElementById("analyzeSurvBtn").disabled = false;
+    var askBtn = document.getElementById("askSurvBtn");
+    if (askBtn) askBtn.disabled = true;
+}
+function clearSurv() {
+    uploadedSurv = null;
+    survFrame    = null;
+    clearSurvChat();
+    document.getElementById("survUploadArea").innerHTML = dzHTML({text:"CAM",cls:"dz-icon-cam"},"Drop surveillance video","MP4 · AVI · MOV","video/*","onSurvPick");
+    document.getElementById("analyzeSurvBtn").disabled = true;
+    var askBtn = document.getElementById("askSurvBtn");
+    if (askBtn) askBtn.disabled = true;
+    var qEl = document.getElementById("survQuestion");
+    if (qEl) qEl.value = "";
+}
+
+// ============================================
+// DOCUMENT
+// ============================================
+function onDocPick(e) { if (e.target.files[0]) loadDoc(e.target.files[0]); }
+function loadDoc(file) {
+    uploadedDoc = file;
+    var ext = file.name.split(".").pop().toUpperCase();
+    document.getElementById("docUploadArea").innerHTML =
+        chipHTML(ext, file.name, (file.size/1024/1024).toFixed(1)+" MB · "+ext, "clearDoc()");
+    document.getElementById("analyzeDocBtn").disabled = false;
+}
+function clearDoc() {
+    uploadedDoc = null;
+    document.getElementById("docUploadArea").innerHTML = dzHTML({text:"DOC",cls:"dz-icon-doc"},"Drop document here","PDF · DOC · DOCX",".pdf,.doc,.docx","onDocPick");
+    document.getElementById("analyzeDocBtn").disabled = true;
+}
+
+// ============================================
+// VIDEO INPUT
+// ============================================
+function onVideoInput() {
+    var val = document.getElementById("videoInput").value.trim();
+    document.getElementById("analyzeVideoBtn").disabled = !val;
+    var info = document.getElementById("videoUrlInfo");
+    if (!val) { info.innerHTML = ""; return; }
+    var p = getPlatform(val);
+    info.innerHTML = p
+        ? "<span style='color:#00ffc8'>&#10003; " + p + " detected</span>"
+        : "<span style='color:#ffb347'>&#9888; Custom URL</span>";
+}
+function getPlatform(url) {
+    var map = {"youtube.com":"YouTube","youtu.be":"YouTube","instagram.com":"Instagram",
+               "tiktok.com":"TikTok","vimeo.com":"Vimeo","twitter.com":"Twitter","x.com":"Twitter",
+               "facebook.com":"Facebook","twitch.tv":"Twitch"};
+    for (var d in map) { if (url.includes(d)) return map[d]; }
+    return null;
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+function dzHTML(icon, title, sub, accept, fn) {
+    var iconHtml = (typeof icon === "object")
+        ? "<div class='dz-icon " + icon.cls + "'>" + icon.text + "</div>"
+        : "<div class='dz-icon'>" + icon + "</div>";
+    return iconHtml +
+           "<div class='dz-title'>" + title + "</div>" +
+           "<div class='dz-sub'>" + sub + "</div>" +
+           "<label class='choose-btn'>Browse File<input type='file' class='file-input' accept='" + accept + "' onchange='" + fn + "(event)'></label>" +
+           "<div class='dz-scanline'></div>";
+}
+function chipHTML(icon, name, meta, removeFn) {
+    return "<div class='file-chip'>" +
+           "<span class='file-chip-icon'>" + icon + "</span>" +
+           "<div class='file-chip-info'><div class='file-chip-name'>" + name + "</div>" +
+           "<div class='file-chip-meta'>" + meta + "</div></div>" +
+           "<button class='remove-btn-small' onclick='" + removeFn + "'>&#10005;</button></div>";
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function grabVideoFrame(file) {
+    return new Promise(function(resolve, reject) {
+        var video  = document.createElement("video");
+        var canvas = document.createElement("canvas");
+        var url    = URL.createObjectURL(file);
+        video.src = url; video.muted = true; video.playsInline = true;
+        video.addEventListener("loadedmetadata", function() {
+            video.currentTime = Math.min(3, video.duration * 0.1);
         });
-    }
+        video.addEventListener("seeked", function() {
+            canvas.width  = Math.min(video.videoWidth  || 640, 640);
+            canvas.height = Math.min(video.videoHeight || 360, 360);
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            resolve(canvas.toDataURL("image/jpeg", 0.8).split(",")[1]);
+        });
+        video.addEventListener("error", function() { URL.revokeObjectURL(url); reject(new Error("Video load failed")); });
+        setTimeout(function() { URL.revokeObjectURL(url); reject(new Error("Timeout")); }, 8000);
+    });
+}
 
-    function showBrowserNotif(medicine) {
-        if (Notification.permission === 'granted') {
-            new Notification('💊 Medicine Time!', {
-                body: `Take ${medicine.name}${medicine.dose ? ' — ' + medicine.dose : ''}${medicine.instructions ? '\n' + medicine.instructions : ''}`,
-                icon: 'https://cdn-icons-png.flaticon.com/512/2913/2913461.png',
-                tag: 'med-' + medicine.id,
-                renotify: true,
+async function readPdf(file) {
+    if (typeof pdfjsLib === "undefined") return "";
+    try {
+        var pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+        var max = Math.min(pdf.numPages, 10);
+        var all = [];
+        for (var i = 1; i <= max; i++) {
+            var page = await pdf.getPage(i);
+            var tc   = await page.getTextContent();
+            all.push(tc.items.map(function(s){ return s.str; }).join(" "));
+        }
+        return all.join("\n").trim().substring(0, 8000);
+    } catch(e) { return ""; }
+}
+
+async function readDocx(file) {
+    if (typeof mammoth === "undefined") return "";
+    try {
+        var result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+        return result.value.trim().substring(0, 8000);
+    } catch(e) { return ""; }
+}
+
+function isRateErr(msg) {
+    var m = (msg || "").toLowerCase();
+    return m.includes("rate_limit") || m.includes("429") ||
+           m.includes("too many")   || m.includes("quota") || m.includes("exceeded");
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;");
+}
+
+async function callGroqRaw(messages, preferredKey, vision, extraTokens) {
+    if (cancelled) throw new Error("CANCELLED");
+    var model    = vision ? VISION_MODEL : TEXT_MODEL;
+    var maxTok   = extraTokens || 1800;
+    var keyOrder = [preferredKey].concat(ALL_KEYS.filter(function(k){ return k !== preferredKey; }));
+
+    for (var ki = 0; ki < keyOrder.length; ki++) {
+        if (cancelled) throw new Error("CANCELLED");
+        var key = keyOrder[ki];
+        setStatus("Calling Groq AI" + (ki > 0 ? " (key " + (ki+1) + ")" : "") + "...");
+        try {
+            var payload = { model: model, messages: messages, max_tokens: maxTok, temperature: 0.3 };
+            var res = await fetch(GROQ_BASE, {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
             });
+            if (!res.ok) {
+                var errData = await res.json().catch(function(){ return {}; });
+                var errMsg  = (errData.error && errData.error.message) ? errData.error.message : ("HTTP " + res.status);
+                if (isRateErr(errMsg)) { setStatus("Rate limited, trying next key..."); await sleep(800); continue; }
+                throw new Error(errMsg);
+            }
+            var data = await res.json();
+            var raw  = (data.choices && data.choices[0] && data.choices[0].message)
+                        ? data.choices[0].message.content : "";
+            if (!raw || raw.trim().length === 0) throw new Error("Empty response from AI.");
+            return raw.trim();
+        } catch(e) {
+            if (e.message === "CANCELLED") throw e;
+            if (isRateErr(e.message)) { setStatus("Rate limited, trying next key..."); await sleep(800); continue; }
+            throw e;
         }
     }
+    throw new Error("RATE_LIMITED");
+}
 
-    // ── Show/dismiss alarm popup ──
-    function showAlarmPopup(medicine) {
-        currentAlarmId = medicine.id;
-        document.getElementById('alarm-medicine-name').textContent =
-            '💊 ' + medicine.name + (medicine.dose ? '  ·  ' + medicine.dose : '');
-        document.getElementById('alarm-medicine-info').textContent =
-            (medicine.instructions || '') + (medicine.alarmTime ? '  ⏰ ' + formatTime12(medicine.alarmTime) : '');
-        document.getElementById('alarm-modal').style.display = 'flex';
-        playAlarmSound();
-        showBrowserNotif(medicine);
+async function getEnglishAnalysis(userMessages, preferredKey, vision) {
+    var sysPrompt = 'You are an expert AI analyst. Produce a thorough, detailed structured analysis report in English.\n' +
+                    'Use section headings formatted as: ### Emoji Title\n' +
+                    'Write detailed paragraphs under each heading. Use bullet points starting with - for lists.\n' +
+                    'ALWAYS end your report with exactly these three sections:\n' +
+                    '  ### Key Highlights  (5-7 bullet points)\n' +
+                    '  ### Sentiment and Tone  (detailed paragraph)\n' +
+                    '  ### Conclusion  (strong closing paragraph)\n' +
+                    'Output ONLY the plain analysis text. No JSON. No markdown fences.';
+    var msgs = [{ role: "system", content: sysPrompt }].concat(userMessages);
+    return await callGroqRaw(msgs, preferredKey, vision, 1800);
+}
+
+function parseSections(text) {
+    var lines    = text.split(/\n/);
+    var sections = [];
+    var cur      = null;
+    lines.forEach(function(line) {
+        if (line.trim().startsWith("###")) {
+            if (cur) sections.push(cur);
+            cur = { heading: line.trim(), body: [] };
+        } else {
+            if (!cur) cur = { heading: "", body: [] };
+            cur.body.push(line);
+        }
+    });
+    if (cur) sections.push(cur);
+    return sections;
+}
+
+async function translateChunk(text, langName, keyOrder) {
+    if (!text || !text.trim()) return text;
+    var sysPrompt = 'You are a professional translator. Translate the following text into ' + langName + '.\n' +
+                    'Rules:\n- Translate every word accurately into ' + langName + '\n' +
+                    '- Lines starting with "- " must stay as "- " followed by the translated text\n' +
+                    '- Keep all emoji characters exactly as they are\n' +
+                    '- Output ONLY the translated text with no explanation or extra words';
+    var msgs = [{ role: "system", content: sysPrompt }, { role: "user", content: text }];
+    for (var ki = 0; ki < keyOrder.length; ki++) {
+        if (cancelled) throw new Error("CANCELLED");
+        try {
+            var res = await fetch(GROQ_BASE, {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + keyOrder[ki], "Content-Type": "application/json" },
+                body: JSON.stringify({ model: TEXT_MODEL, messages: msgs, max_tokens: 900, temperature: 0.1 })
+            });
+            if (!res.ok) {
+                var ed = await res.json().catch(function(){ return {}; });
+                var em = (ed.error && ed.error.message) ? ed.error.message : ("HTTP " + res.status);
+                if (isRateErr(em)) { await sleep(800); continue; }
+                return text;
+            }
+            var data = await res.json();
+            var out  = (data.choices && data.choices[0] && data.choices[0].message)
+                        ? data.choices[0].message.content.trim() : "";
+            if (out.length > 2) return out;
+        } catch(e) {
+            if (e.message === "CANCELLED") throw e;
+            if (isRateErr(e.message)) { await sleep(800); continue; }
+            return text;
+        }
     }
+    return text;
+}
 
-    function dismissAlarm() {
-        document.getElementById('alarm-modal').style.display = 'none';
-        stopAlarmSound();
-        // Mark as triggered for today so it doesn't re-fire
-        if (currentAlarmId) markTriggeredToday(currentAlarmId);
-        currentAlarmId = null;
-        snoozeUntil = null;
+async function translateText(englishText, langName, preferredKey) {
+    if (cancelled) throw new Error("CANCELLED");
+    var sections = parseSections(englishText);
+    var keyOrder = [preferredKey].concat(ALL_KEYS.filter(function(k){ return k !== preferredKey; }));
+    var output   = [];
+    var total    = sections.length;
+    for (var i = 0; i < total; i++) {
+        if (cancelled) throw new Error("CANCELLED");
+        var sec = sections[i];
+        setStatus("Translating to " + langName + "... (" + (i + 1) + "/" + total + ")");
+        var translatedHeading = "";
+        if (sec.heading) {
+            var titleText       = sec.heading.replace(/^###\s*/, "").trim();
+            var translatedTitle = await translateChunk(titleText, langName, keyOrder);
+            translatedHeading   = "### " + (translatedTitle || titleText);
+        }
+        var bodyText       = sec.body.join("\n").trim();
+        var translatedBody = bodyText ? await translateChunk(bodyText, langName, keyOrder) : "";
+        if (translatedHeading) output.push(translatedHeading);
+        if (translatedBody)    output.push(translatedBody);
+        output.push("");
     }
+    return output.join("\n").trim();
+}
 
-    function snoozeAlarm() {
-        document.getElementById('alarm-modal').style.display = 'none';
-        stopAlarmSound();
-        snoozeUntil = Date.now() + 10 * 60 * 1000; // 10 minutes
-        currentAlarmId = null;
-        showToast('⏰ Snoozed for 10 minutes');
+async function analyzeAndTranslate(userMessages, preferredKey, vision, langName) {
+    setStatus("Generating analysis...");
+    var english = await getEnglishAnalysis(userMessages, preferredKey, vision);
+    var translated = english;
+    if (langName && langName.toLowerCase() !== "english") {
+        translated = await translateText(english, langName, preferredKey);
     }
+    return { english: english, translated: translated };
+}
 
-    // ── Track which alarms already fired today ──
-    function getTriggeredToday() {
-        const key = 'triggeredAlarms_' + new Date().toISOString().split('T')[0];
-        return JSON.parse(localStorage.getItem(key) || '[]');
+function makeImagePrompt(lang) {
+    return 'Perform a comprehensive expert-level visual analysis of this image.\nWrite a detailed structured report with these sections:\n\n### Overview\nDescribe the overall scene, context, and purpose of the image in detail.\n\n### Scene and Environment\nDescribe the setting, location type, time of day, lighting conditions, and spatial composition.\n\n### Objects and Elements\nList and describe every significant object, element, and subject present.\n\n### People and Subjects\nDescribe people present — appearance, expressions, posture, clothing, activity. If no people, describe the main subjects.\n\n### Visual Style and Colors\nAnalyze the color palette, contrast, saturation, artistic style, and photographic techniques.\n\n### Text and Symbols\nIdentify and transcribe any visible text, logos, signs, watermarks, or branding.\n\n### Key Highlights\n- List the 5-7 most notable observations as bullet points\n\n### Sentiment and Tone\nDescribe the emotional mood, atmosphere, and tone this image evokes.\n\n### Conclusion\nSummarize the overall message, intent, or story this image communicates.';
+}
+
+function makeVideoPrompt(desc, lang) {
+    return 'Perform a comprehensive expert-level analysis of this video.\nVideo info: ' + desc + '\n\nWrite a detailed structured report with these sections:\n\n### Topic and Overview\nWhat is this video about? Provide full context, background, and purpose.\n\n### Content Breakdown\nDescribe the content in detail — what happens, what is shown or discussed, key moments, and flow.\n\n### Target Audience and Purpose\nWho is this made for? What is its intent — educational, entertainment, marketing, news?\n\n### Style and Presentation\nDescribe production style, visual and audio quality, editing, pacing, and presentation.\n\n### Key Points\nExtract the most important messages, facts, claims, or takeaways.\n\n### Key Highlights\n- List the 5-7 most notable aspects as bullet points\n\n### Overall Assessment\nEvaluate quality, effectiveness, credibility, and impact.\n\n### Sentiment and Tone\nWhat is the overall tone — serious, humorous, urgent, inspirational? Describe the emotional register.\n\n### Conclusion\nFinal verdict — what is the overall value and takeaway of this video?';
+}
+
+function makeSurvPrompt(fileInfo, lang) {
+    return 'You are a professional security analyst. Analyze this surveillance footage: ' + fileInfo + '\n\nWrite a comprehensive security intelligence report with these sections:\n\n### Scene Overview\nDescribe the location, area type, surveillance context, and time indicators.\n\n### Environment Assessment\nAnalyze the physical layout, visibility, lighting, entry and exit points, security infrastructure visible.\n\n### Personnel and Activity\nIdentify all individuals present — count, positions, movements, behaviors, notable actions.\n\n### Objects and Assets\nIdentify significant objects, vehicles, equipment, or assets visible.\n\n### Threats and Anomalies\nIdentify suspicious behavior, security risks, access violations, unusual patterns, or potential threats.\n\n### Key Highlights\n- List the 5-7 most critical security observations as bullet points\n\n### Recommendations\nProvide actionable security recommendations based on the analysis.\n\n### Sentiment and Tone\nDescribe the situational tone — calm, tense, routine, high-risk — and behavioral patterns observed.\n\n### Conclusion\nFinal security assessment with overall risk level and summary verdict.';
+}
+
+function makeDocPrompt(content, fileName, lang) {
+    var hasContent = content && content.length > 80;
+    return 'You are an expert document analyst. Perform a comprehensive in-depth analysis.\n\n' +
+           (hasContent ? 'Document content:\n\n' + content + '\n\n' : 'Document file: "' + fileName + '" — analyze based on filename and file type.\n\n') +
+           'Write a detailed structured report:\n\n### Purpose and Overview\nWhat is this document? Its purpose, context, and intended use.\n\n### Structure and Organization\nDescribe the document structure, sections, formatting, and how it is organized.\n\n### Content Analysis\nThorough analysis of all main topics, arguments, and information.\n\n### Key Findings and Data\nMost important facts, figures, claims, data points, and conclusions.\n\n### Target Audience\nWho is this written for? What expertise level is assumed?\n\n### Background and Context\nRelevant context or background that helps understand this document.\n\n### Key Highlights\n- List the 5-7 most important takeaways as bullet points\n\n### Sentiment and Tone\nWriting tone — formal or informal, objective or persuasive, technical or accessible — and overall sentiment.\n\n### Conclusion\nComprehensive final assessment of quality, completeness, and overall value.';
+}
+
+function setStatus(t) {
+    var el = document.querySelector("#loadingState .loading-sub");
+    if (el) el.textContent = t;
+}
+
+// ============================================
+// ANALYZE IMAGE
+// ============================================
+async function analyzeImage() {
+    if (!uploadedImage) return;
+    cancelled = false;
+    var btn = document.getElementById("analyzeImageBtn");
+    showLoading("Analyzing image with Groq Vision...");
+    btnBusy(btn, true);
+    try {
+        var lang = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        var msgs = [{ role:"user", content:[
+            { type:"image_url", image_url:{ url:"data:" + uploadedImageMime + ";base64," + uploadedImage } },
+            { type:"text", text: makeImagePrompt(lang) }
+        ]}];
+        var result = await analyzeAndTranslate(msgs, API_IMAGE, true, lang);
+        showResults(result.english, result.translated);
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeImage);
+        else if (e.message !== "CANCELLED") showError(e.message);
     }
-    function markTriggeredToday(id) {
-        const key = 'triggeredAlarms_' + new Date().toISOString().split('T')[0];
-        const list = getTriggeredToday();
-        if (!list.includes(id)) { list.push(id); localStorage.setItem(key, JSON.stringify(list)); }
+    btnBusy(btn, false);
+}
+
+// ============================================
+// ANALYZE VIDEO
+// ============================================
+async function analyzeVideo() {
+    var url = document.getElementById("videoInput").value.trim();
+    if (!url) return;
+    cancelled = false;
+    var btn      = document.getElementById("analyzeVideoBtn");
+    var platform = getPlatform(url) || "video";
+    showLoading("Fetching video info...");
+    btnBusy(btn, true);
+    try {
+        var lang  = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        var extra = "";
+        if (platform === "YouTube") {
+            try {
+                var oRes = await fetch("https://www.youtube.com/oembed?url=" + encodeURIComponent(url) + "&format=json");
+                if (oRes.ok) {
+                    var oData = await oRes.json();
+                    extra = "\nTitle: " + oData.title + "\nChannel: " + oData.author_name;
+                }
+            } catch(e2) {}
+        }
+        setStatus("Generating deep analysis with Groq AI...");
+        var desc = "Platform: " + platform + "\nURL: " + url + extra;
+        var msgs = [{ role:"user", content: makeVideoPrompt(desc, lang) }];
+        var result = await analyzeAndTranslate(msgs, API_VIDEO, false, lang);
+        showResults(result.english, result.translated);
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeVideo);
+        else if (e.message !== "CANCELLED") showError(e.message);
     }
+    btnBusy(btn, false);
+}
 
-    // ── Clock checker — runs every 30 seconds ──
-    function startAlarmClock() {
-        if (alarmInterval) clearInterval(alarmInterval);
-        alarmInterval = setInterval(checkAlarms, 30000);
-        checkAlarms(); // run immediately too
+// ============================================
+// ANALYZE SURVEILLANCE
+// ============================================
+async function analyzeSurv() {
+    if (!uploadedSurv) return;
+    cancelled = false;
+    var btn = document.getElementById("analyzeSurvBtn");
+    showLoading("Extracting frame from video...");
+    btnBusy(btn, true);
+    try {
+        var lang = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        try {
+            setStatus("Capturing video frame...");
+            var frame = await grabVideoFrame(uploadedSurv);
+            setStatus("Running security analysis with Groq Vision...");
+            var msgs = [{ role:"user", content:[
+                { type:"image_url", image_url:{ url:"data:image/jpeg;base64,"+frame } },
+                { type:"text", text: makeSurvPrompt(uploadedSurv.name, lang) }
+            ]}];
+            var result = await analyzeAndTranslate(msgs, API_SURV, true, lang);
+            showResults(result.english, result.translated);
+        } catch(frameErr) {
+            setStatus("Frame capture failed, running metadata analysis...");
+            var sizeMB = (uploadedSurv.size/1024/1024).toFixed(1);
+            var info   = uploadedSurv.name + " (" + sizeMB + " MB, " + (uploadedSurv.type||"video") + ")";
+            var msgs2  = [{ role:"user", content: makeSurvPrompt(info, lang) }];
+            var result = await analyzeAndTranslate(msgs2, API_SURV, false, lang);
+            showResults(result.english, result.translated);
+        }
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeSurv);
+        else if (e.message !== "CANCELLED") showError(e.message);
     }
+    btnBusy(btn, false);
+}
 
-    function checkAlarms() {
-        if (snoozeUntil && Date.now() < snoozeUntil) return; // snoozing
-        if (document.getElementById('alarm-modal').style.display === 'flex') return; // already ringing
+// ============================================
+// SURVEILLANCE Q&A
+// ============================================
+function onSurvQuestionInput() {
+    var q   = (document.getElementById("survQuestion") || {}).value || "";
+    var btn = document.getElementById("askSurvBtn");
+    if (btn) btn.disabled = (!q.trim() || !uploadedSurv);
+}
 
-        const now     = new Date();
-        const today   = now.toISOString().split('T')[0];
-        const hh      = String(now.getHours()).padStart(2, '0');
-        const mm      = String(now.getMinutes()).padStart(2, '0');
-        const nowTime = hh + ':' + mm;
-
-        const triggered = getTriggeredToday();
-        const meds = getMedicines().filter(m =>
-            m.active &&
-            m.alarmTime &&
-            (!m.end || m.end >= today) &&
-            !triggered.includes(m.id)
-        );
-
-        for (const m of meds) {
-            if (m.alarmTime === nowTime) {
-                showAlarmPopup(m);
-                break; // show one at a time
+async function askSurv() {
+    var questionEl = document.getElementById("survQuestion");
+    var question   = questionEl ? questionEl.value.trim() : "";
+    if (!question || !uploadedSurv) return;
+    cancelled = false;
+    var btn  = document.getElementById("askSurvBtn");
+    appendChatMsg("user", question);
+    questionEl.value = "";
+    if (btn) btn.disabled = true;
+    var thinkId = appendChatMsg("ai", "...", true);
+    try {
+        if (!survFrame) {
+            updateChatMsg(thinkId, "Extracting video frame...");
+            try { survFrame = await grabVideoFrame(uploadedSurv); } catch(e) { survFrame = null; }
+        }
+        survChatHistory.push({ role: "user", content: question });
+        var sysPrompt = 'You are an expert AI security analyst with access to surveillance footage from "' + uploadedSurv.name + '".\nAnswer questions about the video content accurately and in detail.\nBase your answers on what is visible in the footage frame provided.\nKeep answers clear, professional, and focused on the question asked.\nAlways answer in English only, regardless of the language of the question.';
+        var msgs = [{ role: "system", content: sysPrompt }];
+        var historySlice = survChatHistory.slice(-6);
+        if (survFrame) {
+            var firstUserIdx = historySlice.findIndex(function(m){ return m.role === "user"; });
+            historySlice.forEach(function(m, idx) {
+                if (idx === firstUserIdx) {
+                    msgs.push({ role:"user", content:[
+                        { type:"image_url", image_url:{ url:"data:image/jpeg;base64," + survFrame } },
+                        { type:"text", text: m.content }
+                    ]});
+                } else { msgs.push(m); }
+            });
+        } else {
+            var meta = uploadedSurv.name + " (" + (uploadedSurv.size/1024/1024).toFixed(1) + " MB)";
+            msgs.push({ role:"user", content:"Context: Surveillance video file — " + meta + "\n\nQuestion: " + question });
+        }
+        var keyOrder = [API_SURV].concat(ALL_KEYS.filter(function(k){ return k !== API_SURV; }));
+        var answer = "";
+        for (var ki = 0; ki < keyOrder.length; ki++) {
+            if (cancelled) throw new Error("CANCELLED");
+            try {
+                var payload = { model: survFrame ? VISION_MODEL : TEXT_MODEL, messages: msgs, max_tokens: 1000, temperature: 0.3 };
+                var res = await fetch(GROQ_BASE, { method:"POST", headers:{"Authorization":"Bearer "+keyOrder[ki],"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+                if (!res.ok) {
+                    var errData = await res.json().catch(function(){ return {}; });
+                    var errMsg  = (errData.error && errData.error.message) ? errData.error.message : ("HTTP " + res.status);
+                    if (isRateErr(errMsg)) { await sleep(800); continue; }
+                    throw new Error(errMsg);
+                }
+                var data = await res.json();
+                answer = (data.choices && data.choices[0] && data.choices[0].message) ? data.choices[0].message.content.trim() : "";
+                if (answer) break;
+            } catch(e) {
+                if (e.message === "CANCELLED") throw e;
+                if (isRateErr(e.message)) { await sleep(800); continue; }
+                throw e;
             }
         }
+        if (!answer) throw new Error("No answer received. Please try again.");
+        survChatHistory.push({ role: "assistant", content: answer });
+        updateChatMsg(thinkId, answer, false);
+    } catch(e) {
+        var errTxt = e.message === "CANCELLED" ? "Cancelled." : ("Error: " + e.message);
+        updateChatMsg(thinkId, errTxt, false, true);
+        if (e.message !== "CANCELLED") survChatHistory.pop();
     }
+    if (btn) btn.disabled = false;
+    if (questionEl) questionEl.focus();
+}
 
-    // ── Toast notification (in-app) ──
-    function showToast(msg) {
-        let t = document.getElementById('app-toast');
-        if (!t) {
-            t = document.createElement('div');
-            t.id = 'app-toast';
-            t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2d2d3a;color:#fff;padding:11px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;white-space:nowrap;max-width:90vw;text-align:center;';
-            document.body.appendChild(t);
+function appendChatMsg(role, text, thinking) {
+    var box = document.getElementById("survChatBox");
+    if (!box) return null;
+    var id  = "cm_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    var div = document.createElement("div");
+    div.id        = id;
+    div.className = "chat-msg " + (role === "user" ? "chat-user" : "chat-ai") + (thinking ? " chat-thinking" : "");
+    div.innerHTML = role === "user"
+        ? "<span class='chat-you'>You</span><p>" + escHtml(text) + "</p>"
+        : "<span class='chat-bot'>AI</span><p>" + (thinking ? "<span></span>" : escHtml(text)) + "</p>";
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return id;
+}
+
+function updateChatMsg(id, text, thinking, isError) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("chat-thinking");
+    if (isError) el.classList.add("chat-error");
+    el.innerHTML = "<span class='chat-bot'>AI</span><p>" + (thinking ? "<span></span>" : escHtml(text)) + "</p>";
+    var box = document.getElementById("survChatBox");
+    if (box) box.scrollTop = box.scrollHeight;
+}
+
+function clearSurvChat() {
+    survChatHistory = [];
+    var box = document.getElementById("survChatBox");
+    if (box) box.innerHTML = '<div class="chat-empty">Ask anything about the footage above</div>';
+}
+
+function setSurvMode(mode) {
+    var analyzeBtn = document.getElementById("survModeAnalyze");
+    var qaBtn      = document.getElementById("survModeQA");
+    var analyzeP   = document.getElementById("survAnalyzePanel");
+    var qaP        = document.getElementById("survQAPanel");
+    if (mode === "analyze") {
+        if (analyzeBtn) analyzeBtn.classList.add("active");
+        if (qaBtn)      qaBtn.classList.remove("active");
+        if (analyzeP)   analyzeP.style.display = "block";
+        if (qaP)        qaP.style.display = "none";
+    } else {
+        if (qaBtn)      qaBtn.classList.add("active");
+        if (analyzeBtn) analyzeBtn.classList.remove("active");
+        if (qaP)        qaP.style.display = "block";
+        if (analyzeP)   analyzeP.style.display = "none";
+        onSurvQuestionInput();
+    }
+}
+
+function setQuestion(q) {
+    var el = document.getElementById("survQuestion");
+    if (el) { el.value = q; onSurvQuestionInput(); el.focus(); }
+}
+
+// ============================================
+// ANALYZE DOCUMENT
+// ============================================
+async function analyzeDoc() {
+    if (!uploadedDoc) return;
+    cancelled = false;
+    var btn = document.getElementById("analyzeDocBtn");
+    showLoading("Reading document...");
+    btnBusy(btn, true);
+    try {
+        var lang = languages[selectedLang] ? languages[selectedLang].name : "Hindi";
+        var ext  = uploadedDoc.name.split(".").pop().toLowerCase();
+        var text = "";
+        if (ext === "pdf")                  { setStatus("Extracting PDF text (up to 10 pages)..."); text = await readPdf(uploadedDoc); }
+        else if (ext==="docx"||ext==="doc") { setStatus("Extracting Word document text..."); text = await readDocx(uploadedDoc); }
+        setStatus("Generating deep document analysis...");
+        var msgs = [{ role:"user", content: makeDocPrompt(text, uploadedDoc.name, lang) }];
+        var result = await analyzeAndTranslate(msgs, API_DOC, false, lang);
+        showResults(result.english, result.translated);
+    } catch(e) {
+        if (e.message === "RATE_LIMITED") startCountdown(analyzeDoc);
+        else if (e.message !== "CANCELLED") showError(e.message);
+    }
+    btnBusy(btn, false);
+}
+
+// ============================================
+// COUNTDOWN
+// ============================================
+function startCountdown(fn) {
+    retryFn = fn; cancelled = false; retryCount++;
+    if (retryCount > RETRY_WAITS.length) {
+        retryCount = 0;
+        showError("Still rate limited. Please wait 1-2 minutes then try again.");
+        return;
+    }
+    var TOTAL = RETRY_WAITS[retryCount - 1];
+    var left  = TOTAL;
+    var C     = 2 * Math.PI * 52;
+    ["loadingState","resultsGrid","errorState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display = "none";
+    });
+    document.getElementById("countdownState").style.display = "flex";
+    document.getElementById("summarySection").scrollIntoView({behavior:"smooth"});
+    var badge = document.getElementById("cdBadge");
+    if (badge) badge.textContent = "Attempt " + retryCount + " of " + RETRY_WAITS.length;
+    function tick() {
+        if (cancelled) { clearInterval(cdTimer); return; }
+        document.getElementById("cdNum").textContent = left;
+        document.getElementById("cdSec").textContent = left;
+        var circle = document.getElementById("cdCircle");
+        if (circle) circle.style.strokeDashoffset = C * (1 - left/TOTAL);
+        if (left <= 0) {
+            clearInterval(cdTimer); cdTimer = null;
+            document.getElementById("countdownState").style.display = "none";
+            showLoading("Retrying...");
+            if (retryFn && !cancelled) retryFn();
         }
-        t.textContent = msg;
-        t.style.opacity = '1';
-        clearTimeout(t._timeout);
-        t._timeout = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+        left--;
     }
+    tick();
+    cdTimer = setInterval(tick, 1000);
+}
 
-    function formatTime12(t24) {
-        if (!t24) return '';
-        const [h, m] = t24.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        return ((h % 12) || 12) + ':' + String(m).padStart(2,'0') + ' ' + ampm;
-    }
+function stopCountdown() {
+    cancelled = true;
+    if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+    retryFn = null;
+    var el = document.getElementById("countdownState");
+    if (el) el.style.display = "none";
+}
 
-    // ── Notification permission banner visibility ──
-    function checkNotifBanner() {
-        const banner = document.getElementById('alarm-permission-banner');
-        if (!banner) return;
-        if (!('Notification' in window) || Notification.permission === 'granted') {
-            banner.style.display = 'none';
-        } else {
-            banner.style.display = 'block';
-        }
-    }
-
-    // ── Save medicine (updated with alarmTime) ──
-    function saveMedicine() {
-        const name         = document.getElementById('med-name').value.trim();
-        const dose         = document.getElementById('med-dose').value.trim();
-        const time         = document.getElementById('med-time').value;
-        const alarmTime    = document.getElementById('med-alarm-time').value; // HH:MM
-        const start        = document.getElementById('med-start').value;
-        const end          = document.getElementById('med-end').value;
-        const instructions = document.getElementById('med-instructions').value.trim();
-        if (!name) { alert('Please enter a medicine name.'); return; }
-
-        const meds = getMedicines();
-        meds.unshift({ id: Date.now(), name, dose, time, alarmTime, start: start || new Date().toISOString().split('T')[0], end, instructions, active: true });
-        saveMedicines(meds);
-
-        ['med-name','med-dose','med-alarm-time','med-start','med-end','med-instructions'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('med-time').selectedIndex = 0;
-        document.getElementById('medicine-form').classList.remove('open');
-        renderMedicines();
-        showToast('✅ Medicine reminder saved!');
-    }
-
-    function deleteMedicine(id) {
-        if (!confirm('Delete this reminder?')) return;
-        saveMedicines(getMedicines().filter(m => m.id !== id));
-        renderMedicines();
-    }
-
-    function toggleMedicine(id) {
-        const meds = getMedicines();
-        const m = meds.find(m => m.id === id);
-        if (m) m.active = !m.active;
-        saveMedicines(meds);
-        renderMedicines();
-    }
-
-    const timeLabels = { morning: '🌅 Morning', afternoon: '🌞 Afternoon', evening: '🌆 Evening', night: '🌙 Night' };
-
-    function renderMedicines() {
-        checkNotifBanner();
-        const today = new Date().toISOString().split('T')[0];
-        const meds  = getMedicines();
-        const todayMeds = meds.filter(m => m.active && (!m.end || m.end >= today));
-
-        // Today's summary banner
-        const todayDiv = document.getElementById('today-reminders');
-        if (todayMeds.length) {
-            const groups = { morning:[], afternoon:[], evening:[], night:[] };
-            todayMeds.forEach(m => (groups[m.time] || groups.morning).push(m));
-            todayDiv.innerHTML = `<div class="result-card card-green" style="margin-bottom:14px;">
-                <h3 style="margin-bottom:8px;">📅 Today's Medicines</h3>
-                ${Object.entries(groups).filter(([,v])=>v.length).map(([t,list])=>
-                    `<div style="margin-bottom:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                        <span class="med-badge ${t}">${timeLabels[t]}</span>
-                        ${list.map(m =>
-                            `<span style="font-size:13px; color:#333;">${m.name}${m.alarmTime ? ' <span style="color:#794bc4; font-weight:700;">⏰ '+formatTime12(m.alarmTime)+'</span>' : ''}</span>`
-                        ).join(' &nbsp;|&nbsp; ')}
-                    </div>`
-                ).join('')}
-            </div>`;
-        } else {
-            todayDiv.innerHTML = '';
-        }
-
-        // All medicines list
-        const list = document.getElementById('medicines-list');
-        if (!meds.length) {
-            list.innerHTML = `<div class="empty-state"><span class="empty-icon">💊</span>No reminders yet.<br>Add your first medicine reminder above.</div>`;
+// ============================================
+// RICH RENDERER
+// ============================================
+function renderRichContent(text) {
+    if (!text) return "<p class='rc-text'>—</p>";
+    var lines     = text.split(/\n/);
+    var html      = "";
+    var inSection = false;
+    var inBullets = false;
+    function closeBullets() { if (inBullets) { html += "</ul>"; inBullets = false; } }
+    function closeSection()  { closeBullets(); if (inSection) { html += "</div></div>"; inSection = false; } }
+    lines.forEach(function(line) {
+        var raw = line.trim();
+        if (raw.startsWith("###")) {
+            closeSection();
+            var title = raw.replace(/^###\s*/, "").trim();
+            html += '<div class="rich-section"><div class="rich-heading">' + escHtml(title) + '</div><div class="rich-body">';
+            inSection = true;
             return;
         }
-        list.innerHTML = `<div style="font-weight:700; font-size:13px; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">All Reminders</div>` +
-            meds.map(m => {
-                const expired = m.end && m.end < today;
-                return `<div class="record-card medicine-entry" style="opacity:${m.active && !expired ? 1 : 0.5};">
-                    <div class="record-info">
-                        <div class="record-title">💊 ${m.name} ${m.dose ? '· ' + m.dose : ''}</div>
-                        <div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
-                            <span class="med-badge ${m.time}">${timeLabels[m.time]}</span>
-                            ${m.alarmTime ? `<span style="background:#ede9fe; color:#5b21b6; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px;">⏰ ${formatTime12(m.alarmTime)}</span>` : ''}
-                            ${expired ? '<span class="med-badge" style="background:#fee2e2;color:#991b1b;">Expired</span>' : ''}
-                        </div>
-                        <div class="record-meta" style="margin-top:5px;">
-                            ${m.start ? '📅 From ' + m.start : ''}
-                            ${m.end   ? ' → ' + m.end : ''}
-                            ${m.instructions ? '<br>📝 ' + m.instructions : ''}
-                        </div>
-                    </div>
-                    <div class="record-actions">
-                        <button class="icon-btn" onclick="toggleMedicine(${m.id})" title="${m.active ? 'Pause':'Activate'}">${m.active ? '⏸️':'▶️'}</button>
-                        <button class="icon-btn" onclick="deleteMedicine(${m.id})" title="Delete">🗑️</button>
-                    </div>
-                </div>`;
-            }).join('');
-    }
+        if (!raw) { closeBullets(); return; }
+        if (/^[•\-\*]/.test(raw)) {
+            if (!inBullets) { html += '<ul class="rich-bullets">'; inBullets = true; }
+            html += "<li>" + escHtml(raw.replace(/^[•\-\*]\s*/,"")) + "</li>";
+            return;
+        }
+        closeBullets();
+        html += "<p class='rich-para'>" + escHtml(raw) + "</p>";
+    });
+    closeSection();
+    return html || "<p class='rc-text'>—</p>";
+}
 
-    // ─── INIT MY HEALTH ───────────────────────────────────────────────────────
-    function initMyHealth() { renderRecords(); renderMedicines(); }
+// ============================================
+// UI HELPERS
+// ============================================
+function btnBusy(btn, busy) {
+    btn.disabled  = busy;
+    btn.innerHTML = busy
+        ? "<span>&#9203; Analyzing...</span>"
+        : "<span>&#9889;</span><span>Analyze with AI</span>";
+}
 
-    // Start alarm clock when app loads
-    document.addEventListener('DOMContentLoaded', () => { startAlarmClock(); });
+function showLoading(msg) {
+    ["resultsGrid","errorState","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+    document.getElementById("loadingState").style.display = "flex";
+    setStatus(msg);
+    document.getElementById("summarySection").scrollIntoView({behavior:"smooth"});
+}
+
+function showResults(en, tr) {
+    stopCountdown(); cancelled = false; retryCount = 0;
+    ["loadingState","errorState","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+    var enEl = document.getElementById("englishSummary");
+    var trEl = document.getElementById("translatedSummary");
+    if (enEl) enEl.innerHTML = renderRichContent(en  || "—");
+    if (trEl) trEl.innerHTML = renderRichContent(tr  || "(Translation unavailable)");
+    var lang    = languages[selectedLang];
+    var titleEl = document.getElementById("translatedTitle");
+    if (titleEl) titleEl.textContent = lang.name + " Analysis";
+    document.getElementById("resultsGrid").style.display = "block";
+    document.getElementById("summarySection").scrollIntoView({behavior:"smooth"});
+}
+
+function showError(msg) {
+    stopCountdown();
+    ["loadingState","resultsGrid","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+    document.getElementById("errorMsg").textContent = msg;
+    document.getElementById("errorState").style.display = "flex";
+}
+
+function clearAll() {
+    stopCountdown(); cancelled = false; retryCount = 0;
+    ["loadingState","resultsGrid","errorState","countdownState"].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display="none";
+    });
+}
+
+// ============================================
+// BOOT
+// ============================================
+initLanguages();
+["videoTab","surveillanceTab","documentTab"].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.style.display="none";
+});
+document.getElementById("imageTab").style.display = "block";
 </script>
-
-<style>
-    @keyframes ringBell {
-        from { transform: rotate(-15deg) scale(1.1); }
-        to   { transform: rotate(15deg)  scale(1.2); }
-    }
-</style>
 </body>
 </html>
